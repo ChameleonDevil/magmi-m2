@@ -1730,6 +1730,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             {
                 // now perform insert for all values of the the current backend type in one
                 // single insert
+		$this->log("[CVR TEST] Testing INSERT INTO 'cpet' = '$cpet' ... ", 'error');
+		foreach($inserts as $ins_val){
+			$this->log("[CVR TEST FIELD] : $ins_val", 'info');
+		}
                 $sql = "INSERT INTO $cpet
                         (`attribute_id`, `store_id`, `". $this->getProductColumnId() ."`, `value`)
                         VALUES ";
