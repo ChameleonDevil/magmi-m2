@@ -88,7 +88,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
     private function _getDebugLogger(){
         if ($this->_debugLogger == null){
-            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/trace.txt');
+            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
         }
         return $this->_debugLogger;
     }
