@@ -1680,6 +1680,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     if($ovalue == 'No' && strpos($cpet, '_int') !== FALSE){
                         $dgLog->log("[CVR TEST] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
+                    /*
+                        Debugging only
+                    */
+                    if(strpos($cept, '_datetime') !== FALSE){
+                        $dbLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrCode' | Value = '$ovalue'", 'info');
+                    }
 
                     //do not handle magic values
                     if (!$this->isMagicValue($ovalue))
