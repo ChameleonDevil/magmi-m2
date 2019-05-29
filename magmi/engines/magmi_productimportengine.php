@@ -1684,7 +1684,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                         Debugging only
                     */
                     if(strpos($cpet, '_datetime') !== FALSE){
-                        $dbLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrCode' | Value = '$ovalue'", 'info');
+                        $dbLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
                     //do not handle magic values
