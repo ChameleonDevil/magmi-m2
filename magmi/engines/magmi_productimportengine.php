@@ -12,7 +12,7 @@ require_once(dirname(__DIR__) . "/inc/magmi_defs.php");
 /* use external file for db helper */
 require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
-
+require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 /**
  *
  *
@@ -73,14 +73,24 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
     private $_attributeEntityIdName = 'entity_id';
 
+    private $_debugLogger = null;
+
     /**
      * Constructor
      * add default attribute processor
      */
     public function __construct()
     {
+        
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
+    }
+
+    private function _getDebugLogger(){
+        if ($this->_debugLogger == null){
+            $this->_debugLogger = new Logger('/var/www/html/magmi/magmi/state/cvr_debug.log');
+        }
+        return $this->_debugLogger;
     }
 
     public function getSkuStats()
@@ -1577,6 +1587,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     public function createAttributes($pid, &$item, $attmap, $isnew, $itemids)
     {
+        $dgLog = $this->_getDebugLogger();
         /**
          * get all store ids
          */
@@ -1662,6 +1673,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     // base output value to be inserted = base source value
                     $ovalue = $ivalue;
+
+                    /*
+                        Debugging only
+                    */
+                    if($ovalue == 'No' && strpos($cpe, '_int') !== FALSE){
+                        $dgLog->log("[CVR TEST] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+
                     //do not handle magic values
                     if (!$this->isMagicValue($ovalue))
                     {
