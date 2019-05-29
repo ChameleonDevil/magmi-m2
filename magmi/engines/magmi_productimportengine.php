@@ -12,7 +12,7 @@ require_once(dirname(__DIR__) . "/inc/magmi_defs.php");
 /* use external file for db helper */
 require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
-require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
+require_once(dirname(__DIR__) . "/inc/magmi_loggers11.php");
 /**
  *
  *
@@ -88,7 +88,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
     private function _getDebugLogger(){
         if ($this->_debugLogger == null){
-            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
+            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/trace.txt');
         }
         return $this->_debugLogger;
     }
