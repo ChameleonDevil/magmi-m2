@@ -1677,7 +1677,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     /*
                         Debugging only
                     */
-                    if($ovalue == 'No' && strpos($cpe, '_int') !== FALSE){
+                    if($ovalue == 'No' && strpos($cpet, '_int') !== FALSE){
                         $dgLog->log("[CVR TEST] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
