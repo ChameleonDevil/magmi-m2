@@ -12,7 +12,7 @@ require_once(dirname(__DIR__) . "/inc/magmi_defs.php");
 /* use external file for db helper */
 require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
-require_once(dirname(__DIR__) . "/inc/magmi_loggers11.php");
+require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 /**
  *
  *
