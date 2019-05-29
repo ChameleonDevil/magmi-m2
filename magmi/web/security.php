@@ -39,13 +39,13 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('WWW-Authenticate:Basic realm="Magmi"');
     header('HTTP/1.0 401 Unauthorized');
-    echo 'You must be logged in to use Magmi';
+    echo 'You must be logged in to use Magmi, no user specified.';
     die();
 } else {
     if (!authenticate($_SERVER['PHP_AUTH_USER'],$_SERVER['PHP_AUTH_PW'])){
         header('WWW-Authenticate: Basic realm="Magmi"');
         header('HTTP/1.0 401 Unauthorized');
-        echo 'You must be logged in to use Magmi';
+        echo 'You must be logged in to use Magmi, invalid user specified.';
         die();
     }
 

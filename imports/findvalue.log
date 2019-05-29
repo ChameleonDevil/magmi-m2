@@ -1,0 +1,150 @@
+require_once("magmi_valueparser.php");
+            $sql = "SELECT attribute_id,value FROM $cpet WHERE ". $this->getProductColumnId() ."=? AND store_id=? AND attribute_id IN (" . $this->arr2values($bta[$bt]) . ")";
+                $out[$idcodemap[$row["attribute_id"]]] = $row["value"];
+     *            if in this list, some values are not attribute code, no metadata will be cached.
+            $qcolstr = $this->arr2values($toscan);
+         * now we have 2 index arrays 1. $this->attrinfo which has the following structure: key : attribute_code value : attribute_properties 2. $this->attrbytype which has the following structure: key : attribute backend type value : array of : data => array of attribute_properties ,one for each attribute that match the backend type ids => list of attribute ids of the backend type
+            $qcolstr = $this->arr2values($scarr);
+            $qcolstr = $this->arr2values($wscarr);
+     * Useful for some plugins if generating attribute values that are not in initial scanned list
+     * Returns option ids for a given store for a set of values (for select/multiselect attributes)
+     * - Create new entries if values do not exist
+     * @param array $values
+     *            value to create options for
+    public function getOptionIds($attid, $storeid, $values)
+        $svalues = array(); // store specific values
+        $avalues = array(); // default (admin) values
+        $pvalues = array();
+        for ($i = 0; $i < count($values); $i++)
+            $pvals = explode("||", $values[$i]);
+                    $pvalues[] = intval($pval);
+                $pvalues[] = -1;
+            // if we have a reference value in admin
+                // add translated value in store value array
+                $svalues[] = $matches[1];
+                // add admin value in admin value array
+                $avalues[] = $matches[2];
+                // if no translation, add values in both admin & current store array
+                $svalues[] = $val;
+                $avalues[] = $val;
+        $cval = count($values);
+        // get Existing options for admin values & current attribute (store = 0)
+        //    'value' => the corresponding admin value
+        //for all defined values
+            $pos = $pvalues[$i];
+            if (!isset($optAdmin[$avalues[$i]]))
+                $this->createOptionValue($newoptid, 0, $avalues[$i]);
+                $this->cacheOpt($attid, 0, $newoptid, $avalues[$i], $xpos);
+                $curopt = $optAdmin[$avalues[$i]];
+                    $this->updateOptPos($curopt[0], $pvalues[$i]);
+                    $this->cacheOpt($attid, 0, $curopt[0], $avalues[$i], $pos);
+        //operating on store values
+            //iterating on store values
+                if (!isset($optExisting[$svalues[$i]]))
+                    $opt = $this->getCachedOpt($attid, 0, $avalues[$i]);
+                    if ($avalues[$i] !== $svalues[$i])
+                        $this->createOptionValue($opt[0], $storeid, $svalues[$i]);
+                    $this->cacheOpt($attid, $storeid, $opt[0], $svalues[$i], $opt[1]);
+        //now we have the full cache in optExisting, just take wanted values from it
+            $av = $avalues[$i];
+        // remove existing store values
+        // remove existing values
+            //initialize cache with all existing values
+                $this->cacheOpt($attid, $storeid, $optdesc['opvs'], $optdesc['value'], $optdesc['sort_order']);
+     * Get Option id for select attributes based on value
+     *            : attribute id to find option id from value
+     *            : value to get option id for
+     * @return : array of lines (should be as much as values found),"opvd"=>option_id for value on store 0,"opvs" option id for value on current store
+        //add support for passing no values,returning all optionid/value tuples
+            $extra = "AND BINARY optvals.value IN($ovstr)";
+        $t2 = $this->tablename('eav_attribute_option_value');
+        $sql = "SELECT optvals.option_id as opvs,optvals.value,opt.sort_order FROM $t2 as optvals";
+     * @param string $val value for option
+     * Creates a new option value for an option entry for a store
+     *            : store id to add value for
+     *            : new option value to add
+     * @return : option id for new created value
+        $t = $this->tablename('eav_attribute_option_value');
+        $optval_id = $this->selectone("SELECT value_id FROM $t WHERE option_id=? AND store_id=?", array($optid, $store_id), "value_id");
+            $optval_id = $this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)", array($optid, $store_id, $optval));
+     * @param $val value to get option id
+     * @return mixed cache entry for option (array with value=>array(option_id,position)
+     * returns tax class id for a given tax class value
+     * @param $tcvalue :
+     *            tax class value
+    public function getTaxClassId($tcvalue)
+        if (is_numeric($tcvalue))
+            $txid = $tcvalue;
+            $txid = $this->selectone("SELECT class_id FROM $t WHERE class_name=?", array($tcvalue), "class_id");
+     * parses a calculated value with tokens like {{ }} or {}
+     * @param unknown $pvalue
+     *            parsing value
+     * @return string resolved value
+    public function parseCalculatedValue($pvalue, $item, $params)
+        $pvalue = Magmi_ValueParser::parseValue($pvalue, array("item" => $item, "meta" => $params));
+        return $pvalue;
+            $this->initAttrInfos(array_values($cols));
+     *            : attribute values for product indexed by attribute_code
+                $this->log("invalid store value, skipping item");
+            // do not reset values for existing if non admin
+        // only assign values to store 0 by default in create mode for new sku
+     *            product attributes as array with key:attribute name,value:attribute value
+     *            : attribute set id for values
+        $values = $this->filterkvarr($item, $columns);
+        $sql = "INSERT INTO `$tname` (" . implode(",", $columns) . ") VALUES (" . $this->arr2values($columns) . ")";
+        $lastid = $this->insert($sql, array_values($values));
+        $values = $this->filterkvarr($item, $columns);
+        $sql = "UPDATE  `$tname` SET " . $this->arr2update($values) . " WHERE entity_id=?";
+        $this->update($sql, array_merge(array_values($values), array($pid)));
+        $sql = "SELECT code FROM " . $this->tablename("store") . " WHERE code IN (" . $this->arr2values($scarr) . ")";
+     * Create product attribute from values for a given product id
+     *            product id to create attribute values for
+     *            attribute values in an array indexed by attribute_code
+        // from a performance point of view (even if in the second run the values are filtered)
+                // get attribute value in the item to insert based on code
+                // get the item value
+                $ivalue = $item[$attrcode];
+                // do not handle empty generic int values for new items
+                if ($ivalue == "" && $isnew && $tp == "int")
+                    // base output value to be inserted = base source value
+                    $ovalue = $ivalue;
+                    //do not handle magic values
+                    if (!$this->isMagicValue($ovalue))
+                        //iterate on available handlers until one gives a proper value
+                            //call appropriate callback on current handler to get return value to insert in DB
+                            $hvalue = $hdl->$cb($pid, $item, $store_id, $attrcode, $attrdesc, $ivalue);
+                            //if valid value returned, take it as output value & break
+                            if (isset($hvalue) && $hvalue != '__MAGMI_UNHANDLED__')
+                                $ovalue = $hvalue;
+                    if ($ovalue == '__MAGMI_UNHANDLED__' || $ovalue == '__MAGMI_IGNORE__')
+                        $ovalue = false;
+                        // if handled value is a "DELETE" or a NULL , which will also be removed
+                        if ($ovalue == '__MAGMI_DELETE__')
+                            // do not handle value in insert
+                            $ovalue = null;
+                    // if we have something to do with this value
+                    if ($ovalue !== false && $ovalue !== null)
+                        $data[] = $ovalue === '__NULL__' ? null : $ovalue;
+                        // remove all values bound to the other stores for this attribute,so that they default to "use admin value"
+            //if we have values to insert or update
+                // now perform insert for all values of the the current backend type in one
+                        (`attribute_id`, `store_id`, `". $this->getProductColumnId() ."`, `value`)
+                $sql .= " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
+            //if we have values to delete
+            //if no values inserted or deleted on a new item, we have a problem
+     * assign categories for a given product id from values
+     * categories should already be created & csv values should be as the ones
+     *            : attribute values for product indexed by attribute_code
+            $rcatids = $this->selectAll("SELECT cce.entity_id as id FROM $cce as cce WHERE cce.entity_id IN (" . $this->arr2values($scatids) . ")", $scatids);
+            $sql = "DELETE FROM $ccpt WHERE category_id IN (" . $this->arr2values($ddata) . ") AND product_id=?";
+     *            : attribute values for product indexed by attribute_code
+        $qcolstr = $this->arr2values($wsids);
+                $qcolstr = $this->arr2values($wscodes);
+                $qcolstr = $this->arr2values($scodes);
+     *            : attribute values for product indexed by attribute_code
+            // ill with values
+                    // update UPDATE statement value affectation
+            $this->update($sql, array_merge(array_values($stockvals), array($pid, $stock_id)));
+        // new auto synchro on lat inserted stock item values for stock status.
+         * :ORG: $sql="INSERT INTO `$css` SELECT csit.product_id,ws.website_id,cis.stock_id,csit.qty,? as stock_status FROM `$csit` as csit JOIN ".$this->tablename("core_website")." as ws ON ws.website_id IN (".$this->arr2values($wsids).") JOIN ".$this->tablename("cataloginventory_stock")." as cis ON cis.stock_id=? WHERE product_id=? ON DUPLICATE KEY UPDATE stock_status=VALUES(`stock_status`),qty=VALUES(`qty`)";
+                    JOIN " . $this->tablename("store_website") . " as ws ON ws.website_id IN (" . $this->arr2values($wsids) . ")
