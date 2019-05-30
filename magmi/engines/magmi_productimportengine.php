@@ -2114,6 +2114,29 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     unset($stockvals["is_in_stock"]);
                 }
             }
+            
+            /*
+                START CUSTOM Corné van Rooyen 2019
+            */
+            $fFieldsType = array_column($stockvals, 'Type');
+            $typesDate = array();
+
+            if(count($fFieldsType) > 0){
+                $filterDates = preg_grep($pattern, $fFieldsType);
+                if($filterDates !== NULL && count($filterDates) > 0){
+                    array_filter($stockvals, function($xItem, $xKey){
+                        $fTmp = preg_grep(xKey);
+                        if($fTmp !== NULL && count($fTmp) > 0){
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
+            /*
+                END CUSTOM Corné van Rooyen 2019
+            */
+
             $sql = "UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
             $this->update($sql, array_merge(array_values($stockvals), array($pid, $stock_id)));
         }
