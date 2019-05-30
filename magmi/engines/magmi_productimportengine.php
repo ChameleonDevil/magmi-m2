@@ -2124,13 +2124,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             if(count($fFieldsType) > 0){
                 $filterDates = preg_grep($pattern, $fFieldsType);
                 if($filterDates !== NULL && count($filterDates) > 0){
-                    array_filter($stockvals, function($xItem, $xKey){
-                        $fTmp = preg_grep($pattern, $xKey);
-                        if($fTmp !== NULL && count($fTmp) > 0){
-                            return true;
-                        }
-                        return false;
-                    });
+                    array_filter($stockvals,                         
+                        function($xItem, $xKey){
+                            $fTmp = preg_grep($pattern, $xKey);
+                            if($fTmp !== NULL && count($fTmp) > 0){
+                                return true;
+                            }
+                            return false;
+                        }, 
+                        ARRAY_FILTER_USE_BOTH
+                    );
                 }
             }
             /*
