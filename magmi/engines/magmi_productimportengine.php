@@ -73,7 +73,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
     private $_attributeEntityIdName = 'entity_id';
 
-    private $_debugLogger = null;
+    /*
+        Custom fields, Corné van Rooyen
+        2019
+    */
+    private $_debugLogger = null;  // Custom debug logger to another file
+    private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
 
     /**
      * Constructor
@@ -445,6 +450,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             {
                 $this->_stockcols[] = $row['Field'];
             }
+
+            // Custom Corné van Rooyen
+            $this->_stockfields = $rows;
         }
         return $this->_stockcols;
     }
@@ -2046,6 +2054,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function updateStock($pid, $item, $isnew)
     {
         $scols = $this->getStockCols();
+        
         // ake only stock columns that are in item
         $itstockcols = array_intersect(array_keys($item), $scols);
         // o stock columns set, item exists, no stock update needed.
