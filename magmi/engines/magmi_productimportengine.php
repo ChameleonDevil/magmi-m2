@@ -2125,9 +2125,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $filterDates = preg_grep($pattern, $fFieldsType);
                 if($filterDates !== NULL && count($filterDates) > 0){
                     array_filter($stockvals,                         
-                        function($xItem, $xKey) use ($pattern){
-                            $fPattern = $pattern;
-                            $fTmp = preg_grep($pattern, $xKey);
+                        function($xItem, $xKey) use ($filterDates){
+                            $lPattern = $pattern;
+                            $lFilterDates = $filterDates;
+
+                            $fTmp = preg_grep($lFilterDates, $xKey);
                             if($fTmp !== NULL && count($fTmp) > 0){
                                 return true;
                             }
