@@ -2118,9 +2118,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             /*
                 START CUSTOM Corné van Rooyen 2019
             */
-            $fFieldsType = array_column($stockvals, 'Type');
-            $typesDate = array();
+            $fFieldsType = array_column($this->_stockfields, 'Type');
 
+            $pattern = "(datetime.*|timestamp.*|time.*)";
             if(count($fFieldsType) > 0){
                 $filterDates = preg_grep($pattern, $fFieldsType);
                 if($filterDates !== NULL && count($filterDates) > 0){
