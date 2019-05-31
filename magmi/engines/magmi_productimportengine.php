@@ -112,7 +112,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
             if(count($fFieldsType) > 0){
                 $filterDates = preg_grep($pattern, $fFieldsType);
-                if($filterDates !== NULL && count($filterDates) > 0){
+                if( $filterDates !== NULL && count($filterDates) > 0){
                     $keys_Filters = array_keys($filterDates);
 
                     /* xItem is KVP of array, xKey is the key of that KVP */
@@ -128,7 +128,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     // Update empty string values
                     foreach($itemsAtKeys as $kKey => $kVal ){
-                        $kVal = $kVal == '' ? NULL : $kVal;
+                        // Use empty() because it handles several values 
+                        // Empty String, NULL, 0, FALSE etc
+                        $kVal = empty($kVal) ? NULL : $kVal;
                         $stockVals[$kKey] = $kVal;
                     }
 
@@ -2164,7 +2166,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 Corné van Rooyen
                 2019
             */
-            $this->_updateStockValues($stockVals);
+            $this->_updateStockValues($stockvals);
 
             $sql = "UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
             $this->update($sql, array_merge(array_values($stockvals), array($pid, $stock_id)));
