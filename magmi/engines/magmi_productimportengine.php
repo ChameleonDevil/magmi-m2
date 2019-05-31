@@ -103,10 +103,19 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
     */
     private function _updateStockValues(&$stockVals){
-                    /*
+            /*
                 START CUSTOM Corné van Rooyen 2019
             */
             $fFieldsType = array_column($this->_stockfields, 'Type');
+            $fFieldsNames = array_column($this->_stockFields, 'Field');
+
+            if(count($fFieldsType) !== count($fFieldsNames)){
+                throw new Exception("Inconsistent count of array items detected.  Cannot proceed!  Inside" . __METHOD__);
+            }
+
+            /*
+                START SECTION MYSQL DATE TYPES
+            */
 
             $pattern = "(datetime.*|timestamp.*|time.*)";
 
@@ -115,27 +124,38 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 if( $filterDates !== NULL && count($filterDates) > 0){
                     $keys_Filters = array_keys($filterDates);
 
-                    /* xItem is KVP of array, xKey is the key of that KVP */
-                    $itemsAtKeys = array_filter($stockVals,
-                        function($xItem, $xKey) use ($keys_Filters){
-                            if(array_key_exists($xKey)){
-                                return true;
-                            }
-                            return false;
-                        },
-                        ARRAY_FILTER_USE_BOTH
-                    );
 
-                    // Update empty string values
-                    foreach($itemsAtKeys as $kKey => $kVal ){
+                    /* xItem is KVP of array, xKey is the key of that KVP */
+                    foreach($keys_Filters as $kKey){
+                        $stockKey = $fFieldsNames[$kKey];
+
+                        $curVal = $stockvals[$stockKey];
+
                         // Use empty() because it handles several values 
                         // Empty String, NULL, 0, FALSE etc
-                        $kVal = empty($kVal) ? NULL : $kVal;
-                        $stockVals[$kKey] = $kVal;
+
+                        // Set DateTime to NULL, since empty strings fails to SQL INSERT
+                        // in later versions of MySQL
+                        $curVal = empty($curVal) ? NULL : $curVal;
+                        $stockVals[$stockKey] = $curVal;
+
                     }
 
                 }
             }
+
+            /*
+                END SECTION MYSQL DATE TYPES
+            */
+
+            /*
+                START SECTION
+            */
+
+            /*
+                END SECTION
+            */
+
             /*
                 END CUSTOM Corné van Rooyen 2019
             */
