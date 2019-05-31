@@ -107,7 +107,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 START CUSTOM Corné van Rooyen 2019
             */
             $fFieldsType = array_column($this->_stockfields, 'Type');
-            $fFieldsNames = array_column($this->_stockFields, 'Field');
+            $fFieldsNames = array_column($this->_stockfields, 'Field');
 
             if(count($fFieldsType) !== count($fFieldsNames)){
                 throw new Exception("Inconsistent count of array items detected.  Cannot proceed!  Inside" . __METHOD__);
