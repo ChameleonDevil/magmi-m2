@@ -1764,7 +1764,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                         $dgLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
-                    if(strpos($cpet, '_varchar' !== FALSE)){
+                    if(strpos($cpet, '_varchar') !== FALSE){
                         $dgLog->log("[CVR TEST VARCHAR ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
