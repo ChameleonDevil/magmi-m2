@@ -1708,7 +1708,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 }
                 // get attribute value in the item to insert based on code
                 $attrcode = $attrdesc["attribute_code"];
-                
+
                 /*
                     Debugging only
                 */
@@ -1762,6 +1762,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     */
                     if(strpos($cpet, '_datetime') !== FALSE){
                         $dgLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+
+                    if(strpos($cpet, '_varchar' !== FALSE)){
+                        $dgLog->log("[CVR TEST VARCHAR ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
                     //do not handle magic values
@@ -2118,7 +2122,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function updateStock($pid, $item, $isnew)
     {
         $scols = $this->getStockCols();
-        
+
         // ake only stock columns that are in item
         $itstockcols = array_intersect(array_keys($item), $scols);
         // o stock columns set, item exists, no stock update needed.
@@ -2180,7 +2184,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             }
 
             /*
-                Custom function created 
+                Custom function created
                 Update string values of the $stockVals so that SQL INSERT does not fail.
 
                 Corné van Rooyen
