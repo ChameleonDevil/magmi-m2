@@ -98,6 +98,48 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         return $this->_debugLogger;
     }
 
+    /*
+        Update the stock values array so that SQL INSERTS does not fail.
+        For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
+    */
+    private function _updateStockValues(&$stockVals){
+                    /*
+                START CUSTOM Corné van Rooyen 2019
+            */
+            $fFieldsType = array_column($this->_stockfields, 'Type');
+
+            $pattern = "(datetime.*|timestamp.*|time.*)";
+
+            if(count($fFieldsType) > 0){
+                $filterDates = preg_grep($pattern, $fFieldsType);
+                if($filterDates !== NULL && count($filterDates) > 0){
+                    $keys_Filters = array_keys($filterDates);
+
+                    /* xItem is KVP of array, xKey is the key of that KVP */
+                    $itemsAtKeys = array_filter($stockVals,
+                        function($xItem, $xKey) use ($keys_Filters){
+                            if(array_key_exists($xKey)){
+                                return true;
+                            }
+                            return false;
+                        },
+                        ARRAY_FILTER_USE_BOTH
+                    );
+
+                    // Update empty string values
+                    foreach($itemsAtKeys as $kKey => $kVal ){
+                        $kVal = $kVal == '' ? NULL : $kVal;
+                        $stockVals[$kKey] = $kVal;
+                    }
+
+                }
+            }
+            /*
+                END CUSTOM Corné van Rooyen 2019
+            */
+
+    }
+
     public function getSkuStats()
     {
         return $this->_skustats;
@@ -2114,34 +2156,15 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     unset($stockvals["is_in_stock"]);
                 }
             }
-            
-            /*
-                START CUSTOM Corné van Rooyen 2019
-            */
-            $fFieldsType = array_column($this->_stockfields, 'Type');
 
-            $pattern = "(datetime.*|timestamp.*|time.*)";
-            if(count($fFieldsType) > 0){
-                $filterDates = preg_grep($pattern, $fFieldsType);
-                if($filterDates !== NULL && count($filterDates) > 0){
-                    array_filter($stockvals,                         
-                        function($xItem, $xKey) use ($filterDates){
-                            $lPattern = $pattern;
-                            $lFilterDates = $filterDates;
-
-                            $fTmp = preg_grep($lFilterDates, $xKey);
-                            if($fTmp !== NULL && count($fTmp) > 0){
-                                return true;
-                            }
-                            return false;
-                        }, 
-                        ARRAY_FILTER_USE_BOTH
-                    );
-                }
-            }
             /*
-                END CUSTOM Corné van Rooyen 2019
+                Custom function created 
+                Update string values of the $stockVals so that SQL INSERT does not fail.
+
+                Corné van Rooyen
+                2019
             */
+            $this->_updateStockValues($stockVals);
 
             $sql = "UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
             $this->update($sql, array_merge(array_values($stockvals), array($pid, $stock_id)));
