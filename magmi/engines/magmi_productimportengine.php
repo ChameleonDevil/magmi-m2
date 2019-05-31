@@ -129,7 +129,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     foreach($keys_Filters as $kKey){
                         $stockKey = $fFieldsNames[$kKey];
 
-                        $curVal = $stockvals[$stockKey];
+                        $curVal = $stockVals[$stockKey];
 
                         // Use empty() because it handles several values 
                         // Empty String, NULL, 0, FALSE etc
