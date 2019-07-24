@@ -12,7 +12,7 @@ require_once(dirname(__DIR__) . "/inc/magmi_defs.php");
 /* use external file for db helper */
 require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
-
+require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 /**
  *
  *
@@ -73,14 +73,93 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
     private $_attributeEntityIdName = 'entity_id';
 
+    /*
+        Custom fields, Corné van Rooyen
+        2019
+    */
+    private $_debugLogger = null;  // Custom debug logger to another file
+    private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
+
     /**
      * Constructor
      * add default attribute processor
      */
     public function __construct()
     {
+        
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
+    }
+
+    private function _getDebugLogger(){
+        if ($this->_debugLogger == null){
+            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
+        }
+        return $this->_debugLogger;
+    }
+
+    /*
+        Update the stock values array so that SQL INSERTS does not fail.
+        For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
+    */
+    private function _updateStockValues(&$stockVals){
+            /*
+                START CUSTOM Corné van Rooyen 2019
+            */
+            $fFieldsType = array_column($this->_stockfields, 'Type');
+            $fFieldsNames = array_column($this->_stockfields, 'Field');
+
+            if(count($fFieldsType) !== count($fFieldsNames)){
+                throw new Exception("Inconsistent count of array items detected.  Cannot proceed!  Inside" . __METHOD__);
+            }
+
+            /*
+                START SECTION MYSQL DATE TYPES
+            */
+
+            $pattern = "(datetime.*|timestamp.*|time.*)";
+
+            if(count($fFieldsType) > 0){
+                $filterDates = preg_grep($pattern, $fFieldsType);
+                if( $filterDates !== NULL && count($filterDates) > 0){
+                    $keys_Filters = array_keys($filterDates);
+
+
+                    /* xItem is KVP of array, xKey is the key of that KVP */
+                    foreach($keys_Filters as $kKey){
+                        $stockKey = $fFieldsNames[$kKey];
+
+                        $curVal = $stockVals[$stockKey];
+
+                        // Use empty() because it handles several values 
+                        // Empty String, NULL, 0, FALSE etc
+
+                        // Set DateTime to NULL, since empty strings fails to SQL INSERT
+                        // in later versions of MySQL
+                        $curVal = empty($curVal) ? NULL : $curVal;
+                        $stockVals[$stockKey] = $curVal;
+
+                    }
+
+                }
+            }
+
+            /*
+                END SECTION MYSQL DATE TYPES
+            */
+
+            /*
+                START SECTION
+            */
+
+            /*
+                END SECTION
+            */
+
+            /*
+                END CUSTOM Corné van Rooyen 2019
+            */
+
     }
 
     public function getSkuStats()
@@ -435,6 +514,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             {
                 $this->_stockcols[] = $row['Field'];
             }
+
+            // Custom Corné van Rooyen
+            $this->_stockfields = $rows;
         }
         return $this->_stockcols;
     }
@@ -1577,6 +1659,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     public function createAttributes($pid, &$item, $attmap, $isnew, $itemids)
     {
+        $dgLog = $this->_getDebugLogger();
         /**
          * get all store ids
          */
@@ -1626,6 +1709,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // get attribute value in the item to insert based on code
                 $attrcode = $attrdesc["attribute_code"];
 
+                /*
+                    Debugging only
+                */
+                $dgLog->log("[CVR TEST] ALL ATTRIBUTE NAMES : $attrcode", 'warning');
+
                 // if the attribute code is no more in item (plugins may have come into the way), continue
                 // Using array_key_exists instead of in_array(..,array_keys(..)) for performance reasons
                 if (!array_key_exists($attrcode, $item))
@@ -1662,6 +1750,24 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     // base output value to be inserted = base source value
                     $ovalue = $ivalue;
+
+                    /*
+                        Debugging only
+                    */
+                    if($ovalue == 'No' && strpos($cpet, '_int') !== FALSE){
+                        $dgLog->log("[CVR TEST] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+                    /*
+                        Debugging only
+                    */
+                    if(strpos($cpet, '_datetime') !== FALSE){
+                        $dgLog->log("[CVR TEST DATETIME ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+
+                    if(strpos($cpet, '_varchar') !== FALSE){
+                        $dgLog->log("[CVR TEST VARCHAR ATTRIBUTES] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+
                     //do not handle magic values
                     if (!$this->isMagicValue($ovalue))
                     {
@@ -2016,6 +2122,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function updateStock($pid, $item, $isnew)
     {
         $scols = $this->getStockCols();
+
         // ake only stock columns that are in item
         $itstockcols = array_intersect(array_keys($item), $scols);
         // o stock columns set, item exists, no stock update needed.
@@ -2075,6 +2182,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     unset($stockvals["is_in_stock"]);
                 }
             }
+
+            /*
+                Custom function created
+                Update string values of the $stockVals so that SQL INSERT does not fail.
+
+                Corné van Rooyen
+                2019
+            */
+            $this->_updateStockValues($stockvals);
+
             $sql = "UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
             $this->update($sql, array_merge(array_values($stockvals), array($pid, $stock_id)));
         }

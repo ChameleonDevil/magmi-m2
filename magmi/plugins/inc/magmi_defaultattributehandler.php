@@ -184,7 +184,14 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
         // Handle european date format or other common separators
         if (preg_match("|(\d{1,2})\D(\d{1,2})\D(\d{4})\s*(\d{2}:\d{2}:\d{2})?|", $ovalue, $matches)) {
             $hms = count($matches) > 4 ? $matches[4] : "";
-            $ovalue = trim(sprintf("%4d-%2d-%2d %s", $matches[3], $matches[2], $matches[1], $hms));
+			/* 
+				Fix - Corné van Rooyen : 
+				sprintf("%4d-%2d-%2d %s") - This somehow creates date like 2019- 5-29, then MySQL
+				detects this as invalid date, INSERT INTO fails.
+				Change format to sprintf("%04d-%02d-%02d %s"), this seems to trim '- 5' to -5 and then 
+				insert 0, -05.  Fixes inserts
+			*/
+            $ovalue = trim(sprintf("%04d-%02d-%02d %s", $matches[3], $matches[2], $matches[1], $hms));
         }
         return $ovalue;
     }
