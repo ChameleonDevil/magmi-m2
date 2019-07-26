@@ -1840,10 +1840,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             {
                 // now perform insert for all values of the the current backend type in one
                 // single insert
-		$dbLog->log("[CVR TEST] Testing INSERT INTO 'cpet' = '$cpet' ... ", 'error');
+		$dgLog->log("[CVR TEST] Testing INSERT INTO 'cpet' = '$cpet' ... ", 'error');
 		foreach($inserts as $ins_val){
             $this->log("[CVR TEST FIELD] : $ins_val", 'info');
-            $dbLog->log("[CVR TEST FIELD] : $ins_val", 'info');
+            $dgLog->log("[CVR TEST FIELD] : $ins_val", 'info');
 		}
                 $sql = "INSERT INTO $cpet
                         (`attribute_id`, `store_id`, `". $this->getProductColumnId() ."`, `value`)
@@ -1852,7 +1852,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // this one taken from mysql log analysis of magento import
                 // smart one :)
                 $sql .= " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
-                $dbLog->log("[CVR TEST SQL CODE] - $sql", 'info');
+                $dgLog->log("[CVR TEST SQL CODE] - $sql", 'info');
                 $this->insert($sql, $data);
             }
 
