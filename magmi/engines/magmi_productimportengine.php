@@ -1725,7 +1725,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 /*
                     Debugging only
                 */
-                $dgLog->log("[CVR TEST] ALL ATTRIBUTE NAMES : $attrcode", 'warning');
+                $git->log("[CVR TEST] ALL ATTRIBUTE NAMES : $attrcode", 'warning');
 
                 // if the attribute code is no more in item (plugins may have come into the way), continue
                 // Using array_key_exists instead of in_array(..,array_keys(..)) for performance reasons
@@ -1784,6 +1784,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     if(strpos($cpet, '_int') !== FALSE){
                         $dgLog->log("[CVR TEST INTEGER ATTRIBUTES - $cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                    }
+
+                    if(strpos($cpet, '_text') !== FALSE){
+                        $dgLog->log("[CVR TEST TEXT ATTRIBUTES - $cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                        $dgLog2->log("[LEN : " . strlen($ovalue) . "]" . "[CVR TEST TEXT ATTRIBUTES - $cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
                     //do not handle magic values
