@@ -1779,7 +1779,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     if(strpos($cpet, '_varchar') !== FALSE){
                         $dgLog->log("[CVR TEST VARCHAR ATTRIBUTES -$cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
-                        $dgLog2->log("[LEN : " . len($ovalue) . "]" . "[CVR TEST VARCHAR ATTRIBUTES -$cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                        $dgLog2->log("[LEN : " . strlen($ovalue) . "]" . "[CVR TEST VARCHAR ATTRIBUTES -$cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
                     if(strpos($cpet, '_int') !== FALSE){
