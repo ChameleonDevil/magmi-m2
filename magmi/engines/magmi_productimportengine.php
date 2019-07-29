@@ -78,6 +78,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         2019
     */
     private $_debugLogger = null;  // Custom debug logger to another file
+    private $_debugLogger2 = null;  // Custom second one that we can use for more specific 
     private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
 
     /**
@@ -86,18 +87,28 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     public function __construct()
     {
-        
+
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
     }
 
     private function _getDebugLogger(){
-        if ($this->_debugLogger == null){
-            $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
+        if ($this->_debugLogger == null || $this->_debugLogger2 == null){
+            if($this->_debugLogger == null){
+                $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
+            }
+
+            if($this->_debugLogger2 == null){
+                $this->_debugLogger2 = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug_specific.log');
+            }
         }
         return $this->_debugLogger;
     }
 
+    private function _getDebugLogger2(){
+        $this->_getDebugLogger();
+        return $this->_debugLogger2;
+    }
     /*
         Update the stock values array so that SQL INSERTS does not fail.
         For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
@@ -1660,6 +1671,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function createAttributes($pid, &$item, $attmap, $isnew, $itemids)
     {
         $dgLog = $this->_getDebugLogger();
+        $dgLog2 = $this->_getDebugLogger2();
+
         /**
          * get all store ids
          */
@@ -1766,6 +1779,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     if(strpos($cpet, '_varchar') !== FALSE){
                         $dgLog->log("[CVR TEST VARCHAR ATTRIBUTES -$cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
+                        $dgLog2->log("[LEN : " . len($ovalue) . "]" . "[CVR TEST VARCHAR ATTRIBUTES -$cpet] - AttrCode : '$attrcode' | Value = '$ovalue'", 'info');
                     }
 
                     if(strpos($cpet, '_int') !== FALSE){
