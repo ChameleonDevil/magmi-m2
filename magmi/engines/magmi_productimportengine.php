@@ -1725,7 +1725,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 /*
                     Debugging only
                 */
-                $git->log("[CVR TEST] ALL ATTRIBUTE NAMES : $attrcode", 'warning');
+                $dgLog->log("[CVR TEST] ALL ATTRIBUTE NAMES : $attrcode", 'warning');
 
                 // if the attribute code is no more in item (plugins may have come into the way), continue
                 // Using array_key_exists instead of in_array(..,array_keys(..)) for performance reasons
