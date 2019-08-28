@@ -45,22 +45,22 @@ class CvR_Functions
         return self::$_defaultFields;
     }
 
-    private static function _keyExists($keyName, $arr){
-        return array_key_exists($keyName, $arr);
+    private static function _keyExists($keyName, $data){
+        return array_key_exists($keyName, $data);
     }
 
-    private static function _keyExistsAndEmptyValue($keyName, $arr){
+    private static function _keyExistsAndEmptyValue($keyName, $data){
         $empty = false;
 
-        if(self::_keyExists($keyName, $arr)){
-            $empty = empty($item[$keyName]);
+        if(self::_keyExists($keyName, $data)){
+            $empty = empty($data[$keyName]);
         }
         return $empty;
     }
 
-    private static function _updateOnEmptyValue(&$arr, $keyName, $value){
-        if(self::_keyExistsAndEmptyValue($keyName, $arr)){
-            $arr[$keyName] = $value;
+    private static function _updateOnEmptyValue(&$data, $keyName, $value){
+        if(self::_keyExistsAndEmptyValue($keyName, $data)){
+            $data[$keyName] = $value;
         }
     }
 }
