@@ -13,6 +13,10 @@ require_once(dirname(__DIR__) . "/inc/magmi_defs.php");
 require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
 require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
+
+/* Custom Cvr_Functions - August 2019 */
+require_once(dirname(__DIR__) . "/inc/cvr_functions.php");
+
 /**
  *
  *
@@ -1042,6 +1046,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             $lastdbtime = 0;
             while (($item = $this->datasource->getNextRecord()) !== false)
             {
+                // Corné van Rooyen, added this so that strict MySQL imports (like non-null Dates) will be allowed.
+                $this->_updateMissingDefaults($item);
+
                 $this->_timecounter->initTimingCats(array("line"));
                 $res = $this->processDataSourceLine($item, $rstep, $tstart, $tdiff, $lastdbtime, $lastrec);
                 // break on "forced" last
@@ -2307,5 +2314,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         }
 
         return 'entity_id';
+    }
+
+    private function _updateMissingDefaults(&$item){
+        CvR_Functions::updateMissingDefaults($item);
     }
 }
