@@ -1306,6 +1306,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     public function importItem($item)
     {
+        $dgLog2 = $this->_getDebugLogger2();        
+
         $this->handleIgnore($item);
         if (Magmi_StateManager::getState() == "canceled")
         {
@@ -1451,6 +1453,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         } catch (Exception $e)
         {
             $this->callPlugins(array("itemprocessors"), "processItemException", $item, array("exception" => $e));
+            $dgLog2->log("[EXCEPTION : ]" . $e, 'error');
             $this->logException($e);
             throw $e;
         }
