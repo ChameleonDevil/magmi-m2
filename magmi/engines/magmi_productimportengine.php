@@ -181,8 +181,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
                 $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
 
-                $emptyDataItems = array_filter($data, function($v, $k){
-                    $isEmpty = $v == null || empty($v);
+                // Filter and find empty values in the $data array
+                $emptyDataItems = array_filter($data, function($val, $key){
+                    // empty() function returns True when value = "0", so handle 
+                    // "0" values.  Convert all to int so that we can handle both types.
+                    $isEmpty = empty($v) && (int)$v !== 0;
                     return $isEmpty;
                 }, ARRAY_FILTER_USE_BOTH);
 
