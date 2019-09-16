@@ -172,7 +172,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         foreach($traceStack as $trace){
             // Skip parts of the stack trace, since ['args'] will differ
-            if($trace['class'] === 'DBHelper' && $trace['exec_stmt'] === 'exec_stmt'){
+            if($trace['class'] === 'DBHelper' && $trace['function'] === 'exec_stmt'){
                 $argItems = $trace['args'];
 
                 $sql = $argItems[0];
