@@ -171,24 +171,26 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $traceStack = $e->getTrace();
 
         foreach($traceStack as $trace){
-            $argItems = $trace['args'];
+            // Skip parts of the stack trace, since ['args'] will differ
+            if($trace['class'] === 'DBHelper' && $trace['exec_stmt'] === 'exec_stmt'){
+                $argItems = $trace['args'];
 
-            $sql = $argItems[0];
-            $data = $argItems[1];
+                $sql = $argItems[0];
+                $data = $argItems[1];
 
-            $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
-            $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
+                $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
+                $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
 
-            $emptyDataItems = array_filter(data, function($k, $v){
-                $isEmpty = $v == null || empty($v);
-                return $isEmpty;
-            });
+                $emptyDataItems = array_filter(data, function($k, $v){
+                    $isEmpty = $v == null || empty($v);
+                    return $isEmpty;
+                });
 
-            if(count($emptyDataItems) > 0){
-                $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
-                $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
+                if(count($emptyDataItems) > 0){
+                    $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
+                    $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
+                }
             }
-
         }
     }
 
