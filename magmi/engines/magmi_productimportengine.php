@@ -185,7 +185,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $emptyDataItems = array_filter($data, function($val, $key){
                     // empty() function returns True when value = "0", so handle 
                     // "0" values.  Convert all to int so that we can handle both types.
-                    $isEmpty = empty($v) && (int)$v !== 0;
+                    $isEmpty = empty($val) && (int)$val !== 0;
                     return $isEmpty;
                 }, ARRAY_FILTER_USE_BOTH);
 
