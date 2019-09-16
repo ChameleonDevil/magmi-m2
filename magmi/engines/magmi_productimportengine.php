@@ -181,7 +181,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
                 $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
 
-                $emptyDataItems = array_filter($data, function($k, $v){
+                $emptyDataItems = array_filter($data, function($v, $k){
                     $isEmpty = $v == null || empty($v);
                     return $isEmpty;
                 }, ARRAY_FILTER_USE_BOTH);
