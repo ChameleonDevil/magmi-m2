@@ -1469,7 +1469,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         {
             $this->callPlugins(array("itemprocessors"), "processItemException", $item, array("exception" => $e));
             $logName = str_replace(" ", "", $item['sku']) . ".exceptionlog";
-            $this->_createDebugLogger($logName,  $dglogItemException);
+            $this->_createDebugLogger($logName,  $dgLogItemException);
 
             $dgLog2->log("[EXCEPTION : ]" . $e, 'error');
             $dgLogItemException->log("[EXCEPTION : $e]", 'error');
