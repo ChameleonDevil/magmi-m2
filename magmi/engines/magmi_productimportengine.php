@@ -168,6 +168,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $exceptionLogger->log("<div><strong>SKU: </strong>" . $item['sku'] . "</div>", 'info');
         $exceptionLogger->log("<div>" . print_r($e, true) . "</div>", 'info');
 
+        $traceStack = $e->getTrace();
+
+        foreach($traceStack as $trace){
+            $argItems = $trace['args'][0];
+
+        }
     }
 
 
