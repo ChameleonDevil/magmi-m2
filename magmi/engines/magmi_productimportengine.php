@@ -184,7 +184,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $emptyDataItems = array_filter($data, function($k, $v){
                     $isEmpty = $v == null || empty($v);
                     return $isEmpty;
-                });
+                }, ARRAY_FILTER_USE_BOTH);
 
                 if(count($emptyDataItems) > 0){
                     $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
