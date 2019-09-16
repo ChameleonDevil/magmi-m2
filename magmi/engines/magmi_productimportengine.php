@@ -15,7 +15,9 @@ require_once("magmi_valueparser.php");
 require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 
 /* Custom Cvr_Functions - August 2019 */
+/* Delete these afterwards */
 require_once(dirname(__DIR__) . "/inc/cvr_functions.php");
+require_once(MAGMI_INCDIR . DIRSEP . "magmi_statemanager.php");
 
 /**
  *
@@ -97,6 +99,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     }
 
     /**
+     * Custom function Corné van Rooyen
+     * September 2019
+     *
      * Create a new File Logger by file name or return (ie. skip when) the same instance when it already exists.
      * @fileName - File Name to log to
      * @fileLogger - By reference, an existing logger or null.
@@ -109,8 +114,69 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     }
 
     /**
-     * Create all the debug logger instances required.
-     * Returns the first debugLogger.
+     * Custom function Corné van Rooyen
+     * September 2019
+     * 
+     * Returns the full state directory or the full path to the file name inside the state directory.
+     * @param string $fileName - The File Name only, or null/empty
+     * @return string Returns the full state directory or the full path to the file name inside the state directory
+     */
+    private function _getLoggerStatePath($fileName = null){
+        $path = Magmi_StateManager::getStateDir();
+
+        if ($fileName == null){
+            $path = $path . DIRSEP . "$fileName";
+        }
+
+        return $path;
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019
+     * 
+     * Create a new FileLogger and return it, using the information from the array to create a file name.
+     *
+     * @param array $item Product item array
+     * @param string $extension (Optional) The file extension to use.
+     * @return FileLogger A newly created FileLogger instance
+     */
+    private function _createProductItemLogger($item = array(), $extension = ".exceptionlog"){
+        $sku = $item['sku'];
+
+        $logName = str_replace(" ", "-", $sku) . $extension;
+
+        $this->_createDebugLogger($logName,  $dgLogItemException);
+        return $dgLogItemException;
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019.
+     * 
+     * Log some details of the Exception for the given product to the FileLogger.
+     *
+     * @param array $item Array of product details.
+     * @param Exception $e Exception details caught.
+     * @param string $extension (Optional) The file extension to use.
+     * @return void Logs the contents to a file.
+     */
+    private function _logFullProductItemException($item = array(), Exception $e, $extension = ".exceptionlog"){
+        $exceptionLogger = $this->_createProductItemLogger($item);
+
+        $exceptionLogger->log("[EXCEPTION : $e]", 'error');
+        $exceptionLogger->log($item['sku'], 'info');
+        $exceptionLogger->log(print_r($e), 'info');
+
+    }
+
+
+    /**
+     * Custom function Corné van Rooyen
+     * July 2019
+     *
+     * Create all the custom debug logger instances required.
+     * @return [FileLogger] Returns the first debugLogger.
      */
     private function _getDebugLogger(){
 
@@ -124,6 +190,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         return $this->_debugLogger;
     }
 
+    /**
+     * Custom function Corné van Rooyen
+     * July 2019
+     *
+     * Create and return a custom debugLogger FileLogger.
+     * @return [FileLogger] Returns the second custom debugLogger.
+     */
     private function _getDebugLogger2(){
         $this->_getDebugLogger();
         return $this->_debugLogger2;
@@ -1468,12 +1541,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         } catch (Exception $e)
         {
             $this->callPlugins(array("itemprocessors"), "processItemException", $item, array("exception" => $e));
-            $logName = str_replace(" ", "", $item['sku']) . ".exceptionlog";
-            $this->_createDebugLogger($logName,  $dgLogItemException);
 
             $dgLog2->log("[EXCEPTION : ]" . $e, 'error');
-            $dgLogItemException->log("[EXCEPTION : $e]", 'error');
-            $dgLogItemException->log(print_r($e), 'info');
+            $this->_logFullProductItemException($item, $e);
+
             $this->logException($e);
             throw $e;
         }
