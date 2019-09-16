@@ -145,7 +145,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $sku = $item['sku'];
 
         $logName = str_replace(" ", "-", $sku) . $extension;
-
+        $logName = $this->_getLoggerStatePath($logName);
         $this->_createDebugLogger($logName,  $dgLogItemException);
         return $dgLogItemException;
     }
@@ -166,7 +166,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         $exceptionLogger->log("[EXCEPTION : $e]", 'error');
         $exceptionLogger->log($item['sku'], 'info');
-        $exceptionLogger->log(print_r($e), 'info');
+        $exceptionLogger->log(print_r($e, true), 'info');
 
     }
 
