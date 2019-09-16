@@ -164,9 +164,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private function _logFullProductItemException($item = array(), Exception $e, $extension = ".exceptionlog"){
         $exceptionLogger = $this->_createProductItemLogger($item);
 
-        $exceptionLogger->log("[EXCEPTION : $e]", 'error');
-        $exceptionLogger->log($item['sku'], 'info');
-        $exceptionLogger->log(print_r($e, true), 'info');
+        $exceptionLogger->log("<div>[EXCEPTION : $e]</div>", 'error');
+        $exceptionLogger->log("<div><strong>SKU: </strong>" . $item['sku'] . "</div>", 'info');
+        $exceptionLogger->log("<div>" . print_r($e, true) . "</div>", 'info');
 
     }
 
