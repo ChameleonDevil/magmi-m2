@@ -124,7 +124,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private function _getLoggerStatePath($fileName = null){
         $path = Magmi_StateManager::getStateDir();
 
-        if ($fileName == null){
+        if ($fileName != null){
             $path = $path . DIRSEP . "$fileName";
         }
 
@@ -180,8 +180,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     private function _getDebugLogger(){
 
-        $file1 = '/var/www/html/magmi/magmi/state/cvr_debug.log';
-        $file2 = '/var/www/html/magmi/magmi/state/cvr_debug_specific.log';
+        $file1 = $this->_getLoggerStatePath('cvr_debug.log');
+        $file2 = $this->_getLoggerStatePath('cvr_debug_specific.log');
 
         // Create and Store the new Loggers, or return the same items when already created.
         $this->_createDebugLogger($file1, $this->_debugLogger);
