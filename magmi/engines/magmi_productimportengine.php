@@ -96,16 +96,31 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
     }
 
-    private function _getDebugLogger(){
-        if ($this->_debugLogger == null || $this->_debugLogger2 == null){
-            if($this->_debugLogger == null){
-                $this->_debugLogger = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug.log');
-            }
-
-            if($this->_debugLogger2 == null){
-                $this->_debugLogger2 = new FileLogger('/var/www/html/magmi/magmi/state/cvr_debug_specific.log');
-            }
+    /**
+     * Create a new File Logger by file name or return (ie. skip when) the same instance when it already exists.
+     * @fileName - File Name to log to
+     * @fileLogger - By reference, an existing logger or null.
+     */
+    private function _createDebugLogger($fileName, &$fileLogger = null){
+        if($fileLogger == null){
+            $newLogger = new FileLogger($fileName);
+            $fileLogger = $newLogger;
         }
+    }
+
+    /**
+     * Create all the debug logger instances required.
+     * Returns the first debugLogger.
+     */
+    private function _getDebugLogger(){
+
+        $file1 = '/var/www/html/magmi/magmi/state/cvr_debug.log';
+        $file2 = '/var/www/html/magmi/magmi/state/cvr_debug_specific.log';
+
+        // Create and Store the new Loggers, or return the same items when already created.
+        $this->_createDebugLogger($file1, $this->_debugLogger);
+        $this->_createDebugLogger($file2, $this->_debugLogger2);
+
         return $this->_debugLogger;
     }
 
@@ -1453,7 +1468,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         } catch (Exception $e)
         {
             $this->callPlugins(array("itemprocessors"), "processItemException", $item, array("exception" => $e));
+            $logName = str_replace(" ", "", $item['sku']) . ".exceptionlog";
+            $this->_createDebugLogger($logName,  $dglogItemException);
+
             $dgLog2->log("[EXCEPTION : ]" . $e, 'error');
+            $dgLogItemException->log("[EXCEPTION : $e]", 'error');
+            $dgLogItemException->log(print_r($e), 'info');
             $this->logException($e);
             throw $e;
         }
