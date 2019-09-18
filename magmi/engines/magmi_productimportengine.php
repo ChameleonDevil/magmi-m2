@@ -42,7 +42,7 @@ class FilterExceptionData{
         $curClass = $item['class'];
         return $this->_function == $curFunction && $this->_class == $curClass;
     }
-};
+}
 
 /**
  *
