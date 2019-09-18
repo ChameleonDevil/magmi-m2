@@ -251,7 +251,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         $traceStack = $e->getTrace();
 
-        $filterByExecStatement = array_filter($traceStack, new FilterExceptionData('exec_stmt', 'DBHelper'));
+        $filterByExecStatement = array_filter($traceStack, array(new FilterExceptionData('exec_stmt', 'DBHelper'), 'isMatch'));
 
         foreach($traceStack as $trace){
             // Skip parts of the stack trace, since ['args'] will differ
