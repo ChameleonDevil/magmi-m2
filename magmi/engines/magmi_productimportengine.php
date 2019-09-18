@@ -242,6 +242,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         $knownError = $this->_isKnownMysqlErrorCode($errCode, $errMessage);
 
+        // Find the first item's type
+        $errorType = $knownError ? $this->_getKnownMysqlErrorCode($errCode, $errMessage)[0]['type'] : 'N/A';
+        $exceptionLogger->log("[ERROR TABLE TYPE] : ERROR TYPE : table should be _$errorType", 'info');
+
         // Log this error into the unhandled logger
         if(! $knownError){
             $exceptionLogger->log("SKU : " . $item['sku'] . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
@@ -251,32 +255,38 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         $traceStack = $e->getTrace();
 
-        $filterByExecStatement = array_filter($traceStack, array(new FilterExceptionData('exec_stmt', 'DBHelper'), 'isMatch'));
+        // Instead of iterating through all traces - target specific traces only, every trace stack 
+        // has different arguments (different objects)
+        // Filters, convert to array_values so that we can get the index at 0 
+        $filterByExecStatement = array_values(array_filter($traceStack, array(new FilterExceptionData('exec_stmt', 'DBHelper'), 'isMatch')));
+        $filterByCreateAttributes = array_values(array_filter($traceStack,array(new FilterExceptionData('createAttributes', 'Magmi_ProductImportEngine'), 'isMatch')));
 
-        foreach($traceStack as $trace){
-            // Skip parts of the stack trace, since ['args'] will differ
-            if($trace['class'] === 'DBHelper' && $trace['function'] === 'exec_stmt'){
-                $argItems = $trace['args'];
+        if(count($filterByExecStatement) == 0 || count($filterByCreateAttributes) == 0){
+            die("Filtered Exception does not contain the information required!  Debug from here : " . __METHOD__);
+        }
 
-                $sql = $argItems[0];
-                $data = $argItems[1];
+        $sExecStatement = $filterByExecStatement[0];
+        $eCreateAttributes = $filterByCreateAttributes[0];
 
-                $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
-                $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
+        $argItemsExecStatement = $sExecStatement['args'];
 
-                // Filter and find empty values in the $data array
-                $emptyDataItems = array_filter($data, function($val, $key){
-                    // empty() function returns True when value = "0", so handle 
-                    // "0" values.  Convert all to int so that we can handle both types.
-                    $isEmpty = empty($val) && $val === "";
-                    return $isEmpty;
-                }, ARRAY_FILTER_USE_BOTH);
+        $sql = $argItemsExecStatement[0];
+        $data = $argItemsExecStatement[1];
 
-                if(count($emptyDataItems) > 0){
-                    $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
-                    $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
-                }
-            }
+        $exceptionLogger->log("<div>SQL: [$sql]</div>", 'info');
+        $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
+
+        // Filter and find empty values in the $data array
+        $emptyDataItems = array_filter($data, function($val, $key){
+            // empty() function returns True when value = "0", so handle 
+            // "0" values.  Convert all to int so that we can handle both types.
+            $isEmpty = empty($val) && $val === "";
+            return $isEmpty;
+        }, ARRAY_FILTER_USE_BOTH);
+
+        if(count($emptyDataItems) > 0){
+            $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
+            $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
         }
 
     }
@@ -285,12 +295,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * Custom Function Corné van Rooyen
      * September 2019
      *
-     * Returns true / false to indicate if the error code is known and handled in debugging somwhere.
+     * Returns the array of items that matches if the error code is known and handled in debugging somwhere.
      *
      * @param int $errCode  The error code to compare
-     * @return boolean True/False to indicate if it matched a known list.
+     * @return array The array of items to indicate if it matched a known list.
      */
-    private function _isKnownMysqlErrorCode($errCode, $errMessage){
+    private function _getKnownMysqlErrorCode($errCode, $errMessage){
         $known = $this->_knownMysqlErrorCodes;
 
         // Initialize when empty
@@ -299,7 +309,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
             // Note: remember to add delimiters to the regex expressions!  Otherwise they always return false.
             // Common delimiters (use based on requirements) : / % @
-            array_push($known, array("match" => "%Incorrect integer value%", "value" => 1366));
+            array_push($known, array("match" => "%Incorrect integer value%", "value" => 1366, 'type' => 'int'));
 
             $this->_knownMysqlErrorCodes = $known;
         }
@@ -313,11 +323,23 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
             return $matching && $xVal == $errCode;
         });
-        $exists = count($matches) > 0;
-
-        return $exists;
+        return $matches;
     }
 
+    /**
+     * Custom Function Corné van Rooyen
+     * September 2019
+     *
+     * Returns true / false to indicate if the error code is known and handled in debugging somwhere.
+     *
+     * @param int $errCode  The error code to compare
+     * @return boolean True/False to indicate if it matched a known list.
+     */
+    private function _isKnownMysqlErrorCode($errCode, $errMessage){
+        $items = $this->_getKnownMysqlErrorCode($errCode, $errMessage);
+
+        return count($items) > 0;
+    }
     /*
         Update the stock values array so that SQL INSERTS does not fail.
         For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
