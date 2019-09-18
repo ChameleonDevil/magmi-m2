@@ -308,7 +308,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $attCodes[] = $v['attribute_code'];
                 });
 
-                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($attCodes) . "</div></empties_moreinfo>");
+                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($attCodes, true) . "</div></empties_moreinfo>");
             }
         }
 
