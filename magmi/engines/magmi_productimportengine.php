@@ -303,12 +303,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
                 $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
-                $a = array();
-                array_walk($filteredAttributes, function($v, $k) use (&$a){
-                    $a[] = $v['attribute_code'];
+                $attCodes = array();
+                array_walk($filteredAttributes, function($v, $k) use (&$attCodes){
+                    $attCodes[] = $v['attribute_code'];
                 });
 
-                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($filteredAttributes) . "</div></empties_moreinfo>");
+                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($attCodes) . "</div></empties_moreinfo>");
             }
         }
 
