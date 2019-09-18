@@ -296,7 +296,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         // Initialize when empty
         if(empty($known)){
             $known = array();
-            array_push($known, array("match" => "Incorrect integer value", "value" => 1366));
+
+            // Note: remember to add delimiters to the regex expressions!  Otherwise they always return false.
+            // Common delimiters (use based on requirements) : / % @
+            array_push($known, array("match" => "%Incorrect integer value%", "value" => 1366));
 
             $this->_knownMysqlErrorCodes = $known;
         }
