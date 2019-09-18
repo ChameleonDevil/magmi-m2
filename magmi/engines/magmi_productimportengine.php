@@ -19,6 +19,31 @@ require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 require_once(dirname(__DIR__) . "/inc/cvr_functions.php");
 require_once(MAGMI_INCDIR . DIRSEP . "magmi_statemanager.php");
 
+/** 
+ * Custom Class to filter exception array data
+ * Corné van Rooyen
+ * September 2019
+ * 
+ * Usage: array_filter($array, array(new FilterExceptionData($item, $functionMatch, $classMatch), 'isMatch')
+ */
+class FilterExceptionData{
+
+    private $_function;
+    private $_class;
+    private $_data;
+
+    public function __construct($matchFunction, $matchClass){
+        $this->_function = $matchFunction;
+        $this->_class = $matchClass;
+    }
+
+    public function isMatch($item){
+        $curFunction = $item['function'];
+        $curClass = $item['class'];
+        return $this->_function == $curFunction && $this->_class == $curClass;
+    }
+};
+
 /**
  *
  *
@@ -86,6 +111,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private $_debugLogger = null;  // Custom debug logger to another file
     private $_debugLogger2 = null;  // Custom second one that we can use for more specific 
     private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
+    private $_knownMysqlErrorCodes = array(); // Populated below with error codes that are used while debugging.
 
     /**
      * Constructor
@@ -96,6 +122,37 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * July 2019
+     *
+     * Create all the custom debug logger instances required.
+     * @return [FileLogger] Returns the first debugLogger.
+     */
+    private function _getDebugLogger(){
+
+        $file1 = $this->_getLoggerStatePath('cvr_debug.log');
+        $file2 = $this->_getLoggerStatePath('cvr_debug_specific.log');
+
+        // Create and Store the new Loggers, or return the same items when already created.
+        $this->_createDebugLogger($file1, $this->_debugLogger);
+        $this->_createDebugLogger($file2, $this->_debugLogger2);
+
+        return $this->_debugLogger;
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * July 2019
+     *
+     * Create and return a custom debugLogger FileLogger.
+     * @return [FileLogger] Returns the second custom debugLogger.
+     */
+    private function _getDebugLogger2(){
+        $this->_getDebugLogger();
+        return $this->_debugLogger2;
     }
 
     /**
@@ -142,9 +199,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return FileLogger A newly created FileLogger instance
      */
     private function _createProductItemLogger($item = array(), $extension = ".exceptionlog"){
-        $sku = $item['sku'];
+        $fileName = $item['sku'];
 
-        $logName = str_replace(" ", "-", $sku) . $extension;
+        $logName = str_replace(" ", "-", $fileName) . $extension;
         $logName = $this->_getLoggerStatePath($logName);
         $this->_createDebugLogger($logName,  $dgLogItemException);
         return $dgLogItemException;
@@ -162,13 +219,39 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return void Logs the contents to a file.
      */
     private function _logFullProductItemException($item = array(), Exception $e, $extension = ".exceptionlog"){
-        $exceptionLogger = $this->_createProductItemLogger($item);
+        $extensionUnhandled = $extension . ".unhandled";
+        $exceptionLogger = $this->_createProductItemLogger($item, $extension);
+        $exceptionUnhandledLogger = $this->_createProductItemLogger($item, $extensionUnhandled);
 
         $exceptionLogger->log("<div>[EXCEPTION : $e]</div>", 'error');
         $exceptionLogger->log("<div><strong>SKU: </strong>" . $item['sku'] . "</div>", 'info');
         $exceptionLogger->log("<div>" . print_r($e, true) . "</div>", 'info');
 
+        /** 
+         * errorInfo
+            Corresponds to PDO::errorInfo() or PDOStatement::errorInfo()
+         * PDOStatement::errorInfo() returns an array of error information about the last operation performed by this statement handle. The array consists of at least the following fields:
+            Element	Information
+            0	SQLSTATE error code (a five characters alphanumeric identifier defined in the ANSI SQL standard).
+            1	Driver specific error code.
+            2	Driver specific error message.
+        */
+        $errorInfo = $e->errorInfo;
+        $errCode = $e[1];
+        $errMessage = $e[2];
+
+        $knownError = $this->_isKnownMysqlErrorCode($errCode, $errMessage);
+
+        // Log this error into the unhandled logger
+        if(! $knownError){
+            $exceptionLogger->log("SKU : " . $item['sku'] . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
+            $exceptionUnhandledLogger->log("Unhandled Error Code -> please implement this error type for this product!", 'error');
+            $exceptionUnhandledLogger->log("SKU : " . $item['sku'] . " | ErrorCode : $errCode | ErrorMessage : $errMessage", 'info');
+        }
+
         $traceStack = $e->getTrace();
+
+        $filterByExecStatement = array_filter($traceStack, new FilterExceptionData('exec_stmt', 'DBHelper'));
 
         foreach($traceStack as $trace){
             // Skip parts of the stack trace, since ['args'] will differ
@@ -195,39 +278,43 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 }
             }
         }
-    }
 
-
-    /**
-     * Custom function Corné van Rooyen
-     * July 2019
-     *
-     * Create all the custom debug logger instances required.
-     * @return [FileLogger] Returns the first debugLogger.
-     */
-    private function _getDebugLogger(){
-
-        $file1 = $this->_getLoggerStatePath('cvr_debug.log');
-        $file2 = $this->_getLoggerStatePath('cvr_debug_specific.log');
-
-        // Create and Store the new Loggers, or return the same items when already created.
-        $this->_createDebugLogger($file1, $this->_debugLogger);
-        $this->_createDebugLogger($file2, $this->_debugLogger2);
-
-        return $this->_debugLogger;
     }
 
     /**
-     * Custom function Corné van Rooyen
-     * July 2019
+     * Custom Function Corné van Rooyen
+     * September 2019
      *
-     * Create and return a custom debugLogger FileLogger.
-     * @return [FileLogger] Returns the second custom debugLogger.
+     * Returns true / false to indicate if the error code is known and handled in debugging somwhere.
+     *
+     * @param int $errCode  The error code to compare
+     * @return boolean True/False to indicate if it matched a known list.
      */
-    private function _getDebugLogger2(){
-        $this->_getDebugLogger();
-        return $this->_debugLogger2;
+    private function _isKnownMysqlErrorCode($errCode, $errMessage){
+        $known = $this->_knownMysqlErrorCodes;
+
+        // Initialize when empty
+        if(empty($known)){
+            $known = array();
+            array_push($known, array("match" => "Incorrect integer value", "value" => 1366));
+
+            $this->_knownMysqlErrorCodes = $known;
+        }
+
+        // Filter
+        $matches = array_filter($known, function($v) use ($errCode, $errMessage){
+            $xVal = $v['value'];
+            $xMatch = $v['match'];
+
+            $matching = preg_match($xMatch, $errMessage);
+
+            return $matching && $xVal == $errCode;
+        });
+        $exists = count($matches) > 0;
+
+        return $exists;
     }
+
     /*
         Update the stock values array so that SQL INSERTS does not fail.
         For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
