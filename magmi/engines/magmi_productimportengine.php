@@ -304,7 +304,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // 1. Match keys on both arrays and return attribute details
                 $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
                 $a = array();
-                array_walk($filteredAttributes, function($v, $k) use ($a){
+                array_walk($filteredAttributes, function($v, $k) use (&$a){
                     $a[] = $v['attribute_code'];
                 });
 
