@@ -265,7 +265,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $attributes = array();
         
         if ($knownError){
-            $attributes = $sCreateAttributes[2][$errorType];
+            $attributes = $sCreateAttributes['args'][2][$errorType];
             $exceptionLogger->log("[KNOWN ERROR TYPE : $errorType]", 'info');
         }
         else{
