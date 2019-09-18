@@ -244,29 +244,38 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         // Find the first item's type
         $errorType = $knownError ? $this->_getKnownMysqlErrorCode($errCode, $errMessage)[0]['type'] : 'N/A';
-        $exceptionLogger->log("[ERROR TABLE TYPE] : ERROR TYPE : table should be _$errorType", 'info');
-
-        // Log this error into the unhandled logger
-        if(! $knownError){
-            $exceptionLogger->log("SKU : " . $item['sku'] . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
-            $exceptionUnhandledLogger->log("Unhandled Error Code -> please implement this error type for this product!", 'error');
-            $exceptionUnhandledLogger->log("SKU : " . $item['sku'] . " | ErrorCode : $errCode | ErrorMessage : $errMessage", 'info');
-        }
-
+        $exceptionLogger->log("[ERROR TABLE TYPE] : ERROR TYPE : table should be _$errorType. If this is equal to 'N/A' then this means that the exception is not handled completely yet!", 'info');
+        
         $traceStack = $e->getTrace();
-
+        
         // Instead of iterating through all traces - target specific traces only, every trace stack 
         // has different arguments (different objects)
         // Filters, convert to array_values so that we can get the index at 0 
         $filterByExecStatement = array_values(array_filter($traceStack, array(new FilterExceptionData('exec_stmt', 'DBHelper'), 'isMatch')));
         $filterByCreateAttributes = array_values(array_filter($traceStack,array(new FilterExceptionData('createAttributes', 'Magmi_ProductImportEngine'), 'isMatch')));
-
+        
         if(count($filterByExecStatement) == 0 || count($filterByCreateAttributes) == 0){
             die("Filtered Exception does not contain the information required!  Debug from here : " . __METHOD__);
         }
-
+        
         $sExecStatement = $filterByExecStatement[0];
-        $eCreateAttributes = $filterByCreateAttributes[0];
+        $sCreateAttributes = $filterByCreateAttributes[0];
+        
+        // Store attributes if they are known
+        $attributes = array();
+        
+        if ($knownError){
+            $attributes = $sCreateAttributes[2][$errorType];
+            $exceptionLogger->log("[KNOWN ERROR TYPE : $errorType]", 'info');
+        }
+        else{
+            // Log this error into the unhandled logger
+            $exceptionLogger->log("SKU : " . $item['sku'] . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
+            $exceptionUnhandledLogger->log("Unhandled Error Code -> please implement this error type for this product!", 'error');
+            $exceptionUnhandledLogger->log("SKU : " . $item['sku'] . " | ErrorCode : $errCode | ErrorMessage : $errMessage", 'info');
+            $exceptionUnhandledLogger->log("SQL attempted : $sql", 'info');
+            $exceptionUnhandledLogger->log("NOTE: It is important to implement and handle this type supplied, this should assist in further outputting the attributes that are the problem.");
+        }
 
         $argItemsExecStatement = $sExecStatement['args'];
 
@@ -284,9 +293,19 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             return $isEmpty;
         }, ARRAY_FILTER_USE_BOTH);
 
+        // Check the empty items
         if(count($emptyDataItems) > 0){
             $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
             $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
+
+            // Check the associated attributes for this known 'type'
+            if(!empty($attributes)){
+                // Get the attribute details for the empty items -
+                // 1. Flip values and keys
+                // 2. Match keys on both arrays and return attribute details
+                $filteredAttributes = array_intersect_key($attributes, array_flip ($emptyDataItems));
+                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($filteredAttributes) . "</div></empties_moreinfo>");
+            }
         }
 
     }
