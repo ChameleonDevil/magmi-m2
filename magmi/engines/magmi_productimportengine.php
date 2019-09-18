@@ -301,9 +301,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             // Check the associated attributes for this known 'type'
             if(!empty($attributes)){
                 // Get the attribute details for the empty items -
-                // 1. Flip values and keys
-                // 2. Match keys on both arrays and return attribute details
-                $filteredAttributes = array_intersect_key($attributes, array_flip ($emptyDataItems));
+                // 1. Match keys on both arrays and return attribute details
+                $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
+                $a = array();
+                array_walk($filteredAttributes, function($v, $k){
+                    $a[] = $v['attribute_code'];
+                });
+
                 $exceptionLogger->log("<div><empties_moreinfo>" . print_r($filteredAttributes) . "</div></empties_moreinfo>");
             }
         }
