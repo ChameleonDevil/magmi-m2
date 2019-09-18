@@ -237,8 +237,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             2	Driver specific error message.
         */
         $errorInfo = $e->errorInfo;
-        $errCode = $e[1];
-        $errMessage = $e[2];
+        $errCode = $errorInfo[1];
+        $errMessage = $errorInfo[2];
 
         $knownError = $this->_isKnownMysqlErrorCode($errCode, $errMessage);
 
