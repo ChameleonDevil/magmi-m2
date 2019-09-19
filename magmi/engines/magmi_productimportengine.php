@@ -167,7 +167,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return void
      */
     private function _createAttributeSummaryErrorCacheLogger(){
-        $logger = $this->_createDebugLogger($this->_getLoggerStatePath($this->_errorCacheSummaryLogFile));
+        $this->_createDebugLogger($this->_getLoggerStatePath($this->_errorCacheSummaryLogFile), $logger);
 
         return $logger;
     }
