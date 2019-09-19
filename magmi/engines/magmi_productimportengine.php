@@ -113,7 +113,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
     private $_knownMysqlErrorCodes = array(); // Populated below with error codes that are used while debugging.
     private $_extensionDebugLogFiles = '.exceptionlog'; // The default extension debug log extensions.
-    private $_errorCacheSummaryLogFile = '_Summary-Attribute-Errors_' . $this->_extensionDebugLogFiles; // The summary contents of all attributes that had errors.
+    private $_errorCacheSummaryLogFile = '_Summary-Attribute-Errors_'; // The summary contents of all attributes that had errors.
     private $_attributeErrorCache = array(); // Attribute Error Cache -> For instance AttributeCode, Reason, Column
     /**
      * Constructor
@@ -121,7 +121,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     public function __construct()
     {
-
+        // Custom code Corné van Rooyen - append the extension
+        $_errorCacheSummaryLogFile = $this->_errorCacheSummaryLogFile . $this->_extensionDebugLogFile;
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
     }
