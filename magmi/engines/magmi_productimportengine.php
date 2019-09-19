@@ -313,19 +313,42 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             }
         }
 
+        // Find files to delete
         $dirStatePath = $this->_getLoggerStatePath();
-        $iterator = new DirectoryIterator($dirStatePath);
 
+        $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
+    }
+    
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019
+     * 
+     * Delete Empty debug log files - they are unneeded.
+     *
+     * @param string $extensionMatch The extension of the files to delete
+     * @return void
+     */
+    private function _deleteEmptyDebugLogFiles($dirPath, $extensionMatch){
+        
+        $extension = $extensionMatch;
+
+        $iterator = new DirectoryIterator($dirPath);
+
+        $deleteFiles = array();
         foreach($iterator as $fi){
             if($fi->isFile() && strpos($fi->getFileName(), $extension) !== FALSE){
                 $fSize = $fi->getSize();
 
                 if($fSize === 0){
-                    $dir = dirname($dirStatePath);
-                    unlink($fi);
+                    array_push($deleteFiles, $fi->getPathName());
                 }
             }
         }
+
+        // Delete matching files
+        array_walk($deleteFiles, function($fileToDelete){
+            unlink($fileToDelete);
+        });
     }
 
     /**
