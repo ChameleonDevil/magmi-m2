@@ -241,7 +241,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         }
         else{
             $logger->log("All errors of attributes that contain errors. These only contain the handled attribute types - details will be logged inside the expanded product exception log files!", 'info');
-            $logger->log("<all>" . print_r($this->_attributeErrorCache, true) . "</all>");
+            $logger->log("<all>" . print_r($this->_attributeErrorCache, true) . "</all>", 'extra');
+            $logger->log("<all_attributes>" . print_r(array_keys($this->_attributeErrorCache), true) . "</all_attributes>", 'extra');
         }
     }
 
