@@ -316,7 +316,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $iterator = new DirectoryIterator($this->_getLoggerStatePath());
 
         foreach($iterator as $fi){
-            if($fi->isFile() && strpos($fi->getFileName(), $extension)){
+            if($fi->isFile() && strpos($fi->getFileName(), $extension) !== FALSE){
                 $fSize = $fi->getSize();
 
                 if($fSize === 0){
