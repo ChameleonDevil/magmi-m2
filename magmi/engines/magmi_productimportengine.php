@@ -167,7 +167,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return void
      */
     private function _createAttributeSummaryErrorCacheLogger(){
-        $logger = $this->_createDebugLogger($this->_errorCacheSummaryLogFile);
+        $logger = $this->_createDebugLogger($this->_getLoggerStatePath($this->_errorCacheSummaryLogFile));
 
         return $logger;
     }
@@ -1433,7 +1433,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 }
             }
 
-            // Custom code Corné van Rooyen 
+            // Custom code Corné van Rooyen
             // September 2019
             // Find & delete files, cleanup unneccessary logs
             $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
