@@ -113,6 +113,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
     private $_knownMysqlErrorCodes = array(); // Populated below with error codes that are used while debugging.
     private $_extensionDebugLogFiles = '.exceptionlog'; // The default extension debug log extensions.
+    private $_errorCacheSummaryLogFile = '_Summary-Attribute-Errors_' . $this->_extensionDebugLogFiles; // The summary contents of all attributes that had errors.
     private $_attributeErrorCache = array(); // Attribute Error Cache -> For instance AttributeCode, Reason, Column
     /**
      * Constructor
@@ -154,6 +155,20 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private function _getDebugLogger2(){
         $this->_getDebugLogger();
         return $this->_debugLogger2;
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019
+     * 
+     * Create a debug logger that will contain summary information of attributes that failed.
+     *
+     * @return void
+     */
+    private function _createAttributeSummaryErrorCacheLogger(){
+        $logger = $this->_createDebugLogger($this->_extensionDebugLogFiles);
+
+        return $logger;
     }
 
     /**
@@ -206,6 +221,27 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $logName = $this->_getLoggerStatePath($logName);
         $this->_createDebugLogger($logName,  $dgLogItemException);
         return $dgLogItemException;
+    }
+
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019.
+     * 
+     * Log summary details of attributes that had errors (caught by SQL import Exceptions).
+     * The _logFullProductItemException() provides details for every product.
+     *
+     * @return void
+     */
+    private function _logAttributeErrorCacheSummary(){
+        $logger = $this->_createAttributeSummaryErrorCacheLogger();
+
+        if(empty($this->_attributeErrorCache)){
+            $logger->log("No errors on attributes detected (that are known).  There might be unhandled attributes that are missed!", 'info');
+        }
+        else{
+            $logger->log("All errors of attributes that contain errors. These only contain the handled attribute types - details will be logged inside the expanded product exception log files!", 'info');
+            $logger->log("<all>" . print_r($this->_attributeErrorCache, true) . "</all>");
+        }
     }
 
     /**
@@ -319,10 +355,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                                     'SKU' => $prodSKU);
 
                     if(array_key_exists($code, $this->_attributeErrorCache)){
+                        // Add the new attribute details to existing array
                         array_push($this->_attributeErrorCache[$code], $storeValue);
                     }
                     else{
-                        $this->_attributeErrorCache[$code] = $storeValue;
+                        // Add new attribute code and new inner array
+                        $this->_attributeErrorCache[$code][] = $storeValue;
                     }
                 });
 
@@ -1398,6 +1436,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             // September 2019
             // Find & delete files, cleanup unneccessary logs
             $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
+
 
             //$this->callPlugins("datasources,general,itemprocessors", "endImport");
             $this->exitImport();
