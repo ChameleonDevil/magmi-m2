@@ -122,7 +122,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function __construct()
     {
         // Custom code Corné van Rooyen - append the extension
-        $_errorCacheSummaryLogFile = $this->_errorCacheSummaryLogFile . $this->_extensionDebugLogFile;
+        $this->$_errorCacheSummaryLogFile = $this->_errorCacheSummaryLogFile . $this->_extensionDebugLogFile;
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
     }
@@ -167,7 +167,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return void
      */
     private function _createAttributeSummaryErrorCacheLogger(){
-        $logger = $this->_createDebugLogger($this->_extensionDebugLogFiles);
+        $logger = $this->_createDebugLogger($this->_errorCacheSummaryLogFile);
 
         return $logger;
     }
@@ -1437,7 +1437,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             // September 2019
             // Find & delete files, cleanup unneccessary logs
             $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
-
+            $this->_logAttributeErrorCacheSummary();
 
             //$this->callPlugins("datasources,general,itemprocessors", "endImport");
             $this->exitImport();
