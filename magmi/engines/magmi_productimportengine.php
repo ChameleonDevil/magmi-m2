@@ -14,7 +14,7 @@ require_once("magmi_engine.php");
 require_once("magmi_valueparser.php");
 require_once(dirname(__DIR__) . "/inc/magmi_loggers.php");
 
-/* Custom Cvr_Functions - August 2019 */
+/* Custom imports - Corné van Rooyen - Cvr_Functions - August 2019 */
 /* Delete these afterwards */
 require_once(dirname(__DIR__) . "/inc/cvr_functions.php");
 require_once(MAGMI_INCDIR . DIRSEP . "magmi_statemanager.php");
@@ -112,7 +112,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private $_debugLogger2 = null;  // Custom second one that we can use for more specific 
     private $_stockfields = null;  // Stock inventory fields information from DESCRIBE
     private $_knownMysqlErrorCodes = array(); // Populated below with error codes that are used while debugging.
-
+    private $_extensionDebugLogFiles = '.exceptionlog'; // The default extension debug log extensions.
+    private $_attributeErrorCache = array(); // Attribute Error Cache -> For instance AttributeCode, Reason, Column
     /**
      * Constructor
      * add default attribute processor
@@ -221,14 +222,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private function _logFullProductItemException($item = array(), Exception $e, $extension = ".exceptionlog"){
 
         $extensionUnhandled = $extension . ".unhandled";
+        $prodSKU = $item['sku'];
+
         $exceptionLogger = $this->_createProductItemLogger($item, $extension);
         $exceptionUnhandledLogger = $this->_createProductItemLogger($item, $extensionUnhandled);
 
         $exceptionLogger->log("<div>[EXCEPTION : $e]</div>", 'error');
-        $exceptionLogger->log("<div><strong>SKU: </strong>" . $item['sku'] . "</div>", 'info');
+        $exceptionLogger->log("<div><strong>SKU: </strong>" . $prodSKU . "</div>", 'info');
         $exceptionLogger->log("<div>" . print_r($e, true) . "</div>", 'info');
 
-        /** 
+        /**
          * errorInfo
             Corresponds to PDO::errorInfo() or PDOStatement::errorInfo()
          * PDOStatement::errorInfo() returns an array of error information about the last operation performed by this statement handle. The array consists of at least the following fields:
@@ -270,10 +273,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             $exceptionLogger->log("[KNOWN ERROR TYPE : $errorType]", 'info');
         }
         else{
+            // Inspect this further to see how I can populate attributes as in $knownError
+            $attributes = array();
             // Log this error into the unhandled logger
-            $exceptionLogger->log("SKU : " . $item['sku'] . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
+            $exceptionLogger->log("SKU : " . $prodSKU . " - Unhandled Error Code -> please implement this error type for this product! See the corresponding file ending with $extensionUnhandled for more information!", 'error');
             $exceptionUnhandledLogger->log("Unhandled Error Code -> please implement this error type for this product!", 'error');
-            $exceptionUnhandledLogger->log("SKU : " . $item['sku'] . " | ErrorCode : $errCode | ErrorMessage : $errMessage", 'info');
+            $exceptionUnhandledLogger->log("SKU : " . $prodSKU . " | ErrorCode : $errCode | ErrorMessage : $errMessage", 'info');
             $exceptionUnhandledLogger->log("SQL attempted : $sql", 'info');
             $exceptionUnhandledLogger->log("NOTE: It is important to implement and handle this type supplied, this should assist in further outputting the attributes that are the problem.");
         }
@@ -305,20 +310,69 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // 1. Match keys on both arrays and return attribute details
                 $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
                 $attCodes = array();
-                array_walk($filteredAttributes, function($v, $k) use (&$attCodes){
-                    $attCodes[] = $v['attribute_code'];
+                array_walk($filteredAttributes, function($v, $k) use (&$attCodes, $prodSKU, $errorType){
+                    $code = $v['attribute_code'];
+
+                    array_push($attCodes, $code);
+
+                    $storeValue = array('FieldType' => $errorType,
+                                    'SKU' => $prodSKU);
+
+                    if(array_key_exists($code, $this->_attributeErrorCache)){
+                        array_push($this->_attributeErrorCache[$code], $storeValue);
+                    }
+                    else{
+                        $this->_attributeErrorCache[$code] = $storeValue;
+                    }
                 });
 
                 $exceptionLogger->log("<div><empties_moreinfo>" . print_r($attCodes, true) . "</div></empties_moreinfo>");
             }
+            else{
+                $exceptionLogger->log("<div><empties_moreinfo>Unknown Attribute Type - not implemented, can not determine which attributes are empty!</div></empties_moreinfo>", 'info');
+            }
         }
 
-        // Find files to delete
-        $dirStatePath = $this->_getLoggerStatePath();
-
-        $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
     }
-    
+
+    /**
+     * Custom function Corné van Rooyen
+     * September 2019
+     * 
+     * Delete all matching debug log files.
+     *
+     * @param string $extensionMatch The extension of the files to delete
+     * @return void
+     */
+    private function _deleteDebugLogFiles($dirPath, $extensionMatch, $checkEmpties = false){
+
+        $extension = $extensionMatch;
+
+        $iterator = new DirectoryIterator($dirPath);
+
+        $deleteFiles = array();
+        foreach($iterator as $fi){
+            if($fi->isFile() && strpos($fi->getFileName(), $extension) !== FALSE){
+                $fSize = $fi->getSize();
+
+                // Determine when to add the files for deletion
+                if($checkEmpties){
+                    if($fSize === 0){
+                        array_push($deleteFiles, $fi->getPathName());
+                    }
+                }
+                else{
+                    array_push($deleteFiles, $fi->getPathName());
+                }
+            }
+        }
+
+        // Delete matching files
+        array_walk($deleteFiles, function($fileToDelete){
+            unlink($fileToDelete);
+        });
+    }
+
     /**
      * Custom function Corné van Rooyen
      * September 2019
@@ -330,25 +384,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     private function _deleteEmptyDebugLogFiles($dirPath, $extensionMatch){
         
-        $extension = $extensionMatch;
-
-        $iterator = new DirectoryIterator($dirPath);
-
-        $deleteFiles = array();
-        foreach($iterator as $fi){
-            if($fi->isFile() && strpos($fi->getFileName(), $extension) !== FALSE){
-                $fSize = $fi->getSize();
-
-                if($fSize === 0){
-                    array_push($deleteFiles, $fi->getPathName());
-                }
-            }
-        }
-
-        // Delete matching files
-        array_walk($deleteFiles, function($fileToDelete){
-            unlink($fileToDelete);
-        });
+        $this->_deleteDebugLogFiles($dirPath, $extensionMatch, true);
     }
 
     /**
@@ -401,6 +437,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         return count($items) > 0;
     }
     /*
+        Custom function Corné van Rooyen
+        July 2019
+
         Update the stock values array so that SQL INSERTS does not fail.
         For instance, newer MySQL versions seem to not allow Empty string as a DateTime value.
     */
@@ -1331,6 +1370,15 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             // read each line
             $lastrec = 0;
             $lastdbtime = 0;
+
+            // Corné van Rooyen
+            // September 2019
+            // Clear the log files on reimport - refresh so that we do not get unneeded files 
+            // that don't apply to the current debugging session.
+            $dirStatePath = $this->_getLoggerStatePath();
+            $extension = $this->_extensionDebugLogFiles;
+            $this->_deleteDebugLogFiles($dirStatePath, $extension);
+
             while (($item = $this->datasource->getNextRecord()) !== false)
             {
                 // Corné van Rooyen, added this so that strict MySQL imports (like non-null Dates) will be allowed.
@@ -1345,6 +1393,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     break;
                 }
             }
+
+            // Custom code Corné van Rooyen 
+            // September 2019
+            // Find & delete files, cleanup unneccessary logs
+            $this->_deleteEmptyDebugLogFiles($dirStatePath, $extension);
+
             //$this->callPlugins("datasources,general,itemprocessors", "endImport");
             $this->exitImport();
             $this->reportStats($this->_current_row, $tstart, $tdiff, $lastdbtime, $lastrec);
@@ -1742,7 +1796,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             $this->callPlugins(array("itemprocessors"), "processItemException", $item, array("exception" => $e));
 
             $dgLog2->log("[EXCEPTION : ]" . $e, 'error');
-            $this->_logFullProductItemException($item, $e);
+
+            // Custom code Corn♪0 van Rooyen
+            // September 2019
+            // Log and expand the product information for the current exception
+            $this->_logFullProductItemException($item, $e, $this->_extensionDebugLogFiles);
 
             $this->logException($e);
             throw $e;
@@ -2605,6 +2663,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         return 'entity_id';
     }
 
+    /**
+     * Custom function Corné van Rooyen
+     * August 2019
+     * 
+     * Update missing/empty values for some known fields.
+     * @param array $item Product item array
+     * @return void
+     */
     private function _updateMissingDefaults(&$item){
         CvR_Functions::updateMissingDefaults($item);
     }
