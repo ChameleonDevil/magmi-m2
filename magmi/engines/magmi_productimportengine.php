@@ -219,6 +219,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      * @return void Logs the contents to a file.
      */
     private function _logFullProductItemException($item = array(), Exception $e, $extension = ".exceptionlog"){
+
         $extensionUnhandled = $extension . ".unhandled";
         $exceptionLogger = $this->_createProductItemLogger($item, $extension);
         $exceptionUnhandledLogger = $this->_createProductItemLogger($item, $extensionUnhandled);
@@ -245,25 +246,25 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         // Find the first item's type
         $errorType = $knownError ? $this->_getKnownMysqlErrorCode($errCode, $errMessage)[0]['type'] : 'N/A';
         $exceptionLogger->log("[ERROR TABLE TYPE] : ERROR TYPE : table should be _$errorType. If this is equal to 'N/A' then this means that the exception is not handled completely yet!", 'info');
-        
+
         $traceStack = $e->getTrace();
-        
+
         // Instead of iterating through all traces - target specific traces only, every trace stack 
         // has different arguments (different objects)
         // Filters, convert to array_values so that we can get the index at 0 
         $filterByExecStatement = array_values(array_filter($traceStack, array(new FilterExceptionData('exec_stmt', 'DBHelper'), 'isMatch')));
         $filterByCreateAttributes = array_values(array_filter($traceStack,array(new FilterExceptionData('createAttributes', 'Magmi_ProductImportEngine'), 'isMatch')));
-        
+
         if(count($filterByExecStatement) == 0 || count($filterByCreateAttributes) == 0){
             die("Filtered Exception does not contain the information required!  Debug from here : " . __METHOD__);
         }
-        
+
         $sExecStatement = $filterByExecStatement[0];
         $sCreateAttributes = $filterByCreateAttributes[0];
-        
+
         // Store attributes if they are known
         $attributes = array();
-        
+
         if ($knownError){
             $attributes = $sCreateAttributes['args'][2][$errorType];
             $exceptionLogger->log("[KNOWN ERROR TYPE : $errorType]", 'info');
@@ -312,6 +313,18 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             }
         }
 
+        $iterator = new DirectoryIterator(dir_name($exceptionLogger->_fname));
+
+        foreach($iterator as $fi){
+            if($fi->isFile() && strpos($fi->getFileName(), $extension)){
+                $fSize = $fi->getSize();
+
+                if($fSize === 0){
+                    $dir = dir_name($exceptionLogger->_fname);
+                    unlink($fi);
+                }
+            }
+        }
     }
 
     /**
