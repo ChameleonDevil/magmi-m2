@@ -313,7 +313,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             }
         }
 
-        $iterator = new DirectoryIterator(dirname($exceptionLogger->_fname));
+        $iterator = new DirectoryIterator($this->_getLoggerStatePath());
 
         foreach($iterator as $fi){
             if($fi->isFile() && strpos($fi->getFileName(), $extension)){
