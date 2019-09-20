@@ -356,7 +356,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                 // Try to combine information
                 array_walk($attInfo['id'], function($v, $k) use (&$attInfo){
-                    $attInfo['id'][$k] = array('code' => $attInfo['code'], 'id' => $v);
+                    $attInfo['id'][$k] = array('code' => $attInfo['code'][$k], 'id' => $v);
                 });
 
                 $attInfo = array_values($attInfo['id']);
