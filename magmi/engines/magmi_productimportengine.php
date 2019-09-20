@@ -356,7 +356,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
-                $filteredAttributes = array_filter($attInfo, function($v, $k){
+                $filteredAttributes = array_filter($attInfo, function($v, $k) use ($invIds){
                     return array_key_exists($k, $invIds);
                 }, ARRAY_FILTER_USE_BOTH);
 
