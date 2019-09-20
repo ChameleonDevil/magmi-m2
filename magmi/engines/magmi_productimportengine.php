@@ -377,7 +377,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                     $storeValue = array('FieldType' => $errorType,
                         'SKU' => $prodSKU,
-                        'ID' => $id
+                        'ID' => $id,
+                        'AttributeCode' => $code
                     );
                     array_push($attCodes, $storeValue);
 
