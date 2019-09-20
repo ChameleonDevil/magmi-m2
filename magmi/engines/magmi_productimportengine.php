@@ -344,9 +344,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
             // Check the associated attributes for this known 'type'
             if(!empty($attributes)){
+
+                $attrIds = explode(",", $attributes['ids']);
+
+                // Get the attribute IDs for the empty items
+                $idsOfEmpties = array_intersect_key($attrIds, $emptyDataItems);
+
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
                 $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
+
                 $attCodes = array();
                 array_walk($filteredAttributes, function($v, $k) use (&$attCodes, $prodSKU, $errorType){
                     $code = $v['attribute_code'];
