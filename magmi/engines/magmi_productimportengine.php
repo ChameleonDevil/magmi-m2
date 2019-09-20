@@ -360,7 +360,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 });
 
                 // Don't need the extra ['code'] details anymore
-                $attInfo = array_column($attInfo, 'id');
+                $attInfo = array_values($attInfo['id']);
 
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
