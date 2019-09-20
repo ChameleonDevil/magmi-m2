@@ -372,12 +372,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                 $attCodes = array();
                 array_walk($filteredAttributes, function($v, $k) use (&$attCodes, $prodSKU, $errorType){
-                    $code = $v['attribute_code'];
-
-                    array_push($attCodes, $code);
+                    $code = $v['code'];
+                    $id = $v['id'];
 
                     $storeValue = array('FieldType' => $errorType,
-                                    'SKU' => $prodSKU);
+                        'SKU' => $prodSKU,
+                        'ID' => $id
+                    );
+                    array_push($attCodes, $storeValue);
 
                     if(array_key_exists($code, $this->_attributeErrorCache)){
                         // Add the new attribute details to existing array
