@@ -351,12 +351,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $idsOfEmpties = array_intersect_key($attrIds, $emptyDataItems);
                 $invIds = array_flip($idsOfEmpties);
 
-                $attInfo['id'] = array_column($attributes['data'], 'attribute_id');
+                $attInfo['id'] = array_flip(array_column($attributes['data'], 'attribute_id'));
                 $attInfo['code'] = array_column($attributes['data'], 'attribute_code');
 
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
-                $filteredAttributes = array_filter($attInfo, function($v, $k) use ($invIds){
+                $filteredAttributes = array_filter($attInfo['id'], function($v, $k) use ($invIds){
                     return array_key_exists($k, $invIds);
                 }, ARRAY_FILTER_USE_BOTH);
 
