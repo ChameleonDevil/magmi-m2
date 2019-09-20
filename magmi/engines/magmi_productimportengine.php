@@ -349,7 +349,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
                 // Get the attribute IDs for the empty items
                 $idsOfEmpties = array_intersect_key($attrIds, $emptyDataItems);
-                $invIds = array_flip($idsOfEmpties);
+                $invIds = array_flip($idsOfEmpties); 
 
                 $attInfo['id'] = array_column($attributes['data'], 'attribute_id');
                 $attInfo['code'] = array_column($attributes['data'], 'attribute_code');
