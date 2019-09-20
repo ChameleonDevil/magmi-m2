@@ -358,7 +358,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // 1. Match keys on both arrays and return attribute details
                 $filteredAttributes = array_filter($attInfo, function($v, $k){
                     return array_key_exists($k, $invIds);
-                });
+                }, ARRAY_FILTER_USE_BOTH);
 
                 // $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
 
