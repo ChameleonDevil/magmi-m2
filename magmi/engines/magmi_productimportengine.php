@@ -359,13 +359,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $attInfo['id'][$k] = array('code' => $attInfo['code'][$k], 'id' => $v);
                 });
 
-                $attInfo = array_values($attInfo['id']);
+                // Don't need the extra ['code'] details anymore
+                $attInfo = array_values($attInfo, 'id');
 
                 // Get the attribute details for the empty items -
                 // 1. Match keys on both arrays and return attribute details
-                $filteredAttributes = array_filter($attInfo, function($v, $k) use ($invIds){
-                    return array_key_exists($v['id'], $invIds);
-                }, ARRAY_FILTER_USE_BOTH);
+                $filteredAttributes = array_filter($attInfo, function($v) use ($idsOfEmpties){
+                    return array_key_exists($v['id'], $idsOfEmpties);
+                }, 0);
 
                 // $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
 
