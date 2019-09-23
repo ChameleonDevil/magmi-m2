@@ -330,6 +330,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $exceptionLogger->log("<div>VALUES : <data>" . print_r($data, true) . "</data></div>", 'info');
 
         // Filter and find empty values in the $data array
+        // These represent the SQL update query (?,?,?) for each row
+        // So index 0-2 is item 1, 3-5 item 2 etc. Later we need information to find attribute ID inside.
+        // Item 0 for each row seems to represent the target Attribute ID, other items are values for that row.
         $emptyDataItems = array_filter($data, function($val, $key){
             // empty() function returns True when value = "0", so handle 
             // "0" values.  Convert all to int so that we can handle both types.
