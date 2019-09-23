@@ -358,20 +358,27 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $numberColumns = count(explode(',', trim($sqlMatches['questionmarks'])));
 
                 // Fetch the Attribute IDs for all attributes
-                $attrIds = explode(",", $attributes['ids']);
+                $attrImportantInfo['ids'] = explode(",", $attributes['ids']);
+                $attrImportantInfo['attribute_codes'] = array_column($attributes['data'], 'attribute_code');
+                $attrImportantInfo['attribute_ids'] = array_column($attributes['data'], 'attribute_id');
 
+                $attrInfo = array();
                 // Objective : Find the attribute details (code/type) etc from other stack trace items.
                 // Use $emptyDataItems to assist in that with numberColumns.
                 // Find the positions of the empties inside the array
                 // The index of $emptyDataItems represents the index inside $data
                 // The value is the attribute ID that is empty.
-                array_walk($emptyDataItems, function($v, $k) use (&$numberColumns){
+                array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $attrImportantInfo, $numberColumns){
                     $curPos = $k;
                     $curVal = $v;
                     // Get modulus (difference)
                     $diff = $curPos % $numberColumns;
-                    // Calculate the position of the actual index we need
-                    array_push($emptiesPositions, $v);
+                    $diffString = "CurPos : $curPos % $numberColumns = $diff";
+                    // Calculate the position of the actual index we need (for the attribute ID)
+                    $posID = $curPos - $diff;
+                    $newAttr = array('nullPos' => $k, 'DiffString' => $diffString, 'posAttrID' => $posID, 'attrID' => ''$attributes[]'')
+                    array_push ($attrInfo)
+
                 });
 
                 // Get the attribute IDs for the empty items
