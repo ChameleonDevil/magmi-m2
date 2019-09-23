@@ -122,7 +122,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     public function __construct()
     {
         // Custom code Corné van Rooyen - append the extension
-        $this->$_errorCacheSummaryLogFile = $this->_errorCacheSummaryLogFile . $this->_extensionDebugLogFile;
+        $this->_errorCacheSummaryLogFile = $this->_errorCacheSummaryLogFile . $this->_extensionDebugLogFile;
         parent::__construct();
         $this->setBuiltinPluginClasses("itemprocessors", MAGMI_PLUGIN_DIR . '/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor');
     }
