@@ -410,8 +410,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $newAttr = array('NullPos' => $curPos,
                                     'DiffString' => $diffString,
                                     'PosAttrID' => $posID,
-                                    'AttrCode' => $attCodes[0],
-                                    'AttrID' => $findIDs[0]);
+                                    'AttrCode' => array_values($attCodes)[0],
+                                    'AttrID' => array_values($findIDs)[0],
+                                    'IndexInData' => array_keys($findIDs)[0]
+                                );
 
                     array_push ($attrInfo, $newAttr);
 
