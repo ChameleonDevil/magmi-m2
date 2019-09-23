@@ -297,7 +297,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         $filterByCreateAttributes = array_values(array_filter($traceStack,array(new FilterExceptionData('createAttributes', 'Magmi_ProductImportEngine'), 'isMatch')));
 
         if(count($filterByExecStatement) == 0 || count($filterByCreateAttributes) == 0){
-            die("Filtered Exception does not contain the information required!  Debug from here : " . __METHOD__);
+            $mErrFiltered = "Filtered Exception does not contain the information required!  Debug from here : " . __METHOD__;
+            $exceptionLogger->log($mErrFiltered, 'error');
+            $exceptionUnhandledLogger->log($mErrFiltered, 'error');
         }
 
         $sExecStatement = $filterByExecStatement[0];
@@ -352,7 +354,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $matched = preg_match($regexSQLQuestionMarks, $sql, $sqlMatches);
 
                 if(!$matched){
-                    die("Regular Expression match could not find QuestionMarks in SQL string!" . __METHOD__);
+                    $mErrRegexQM = "Regular Expression match could not find QuestionMarks in SQL string!" . __METHOD__;
+                    $exceptionLogger->log($mErrRegexQM, 'error');
+                    $exceptionUnhandledLogger->log($mErrRegexQM, 'error');
                 }
                 // Find the number of question marks per row (aka all columns in row)
                 $numberColumns = count(explode(',', trim($sqlMatches['questionmarks'])));
@@ -363,9 +367,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $attrImportantInfo['attribute_ids'] = array_column($attributes['data'], 'attribute_id');
 
                 // Verify array, check indexes
-                array_walk($attrImportantInfo['ids'], function($v, $k) use ($attrImportantInfo){ 
+                array_walk($attrImportantInfo['ids'], function($v, $k) use ($attrImportantInfo){
                     if($attrImportantInfo['attribute_ids'][$k] != $v){
-                        die("Verification of 'ids' and 'attribute_ids' failed inside " . __METHOD__ . ", please debug further!");
+                        $mVerificationIDs = "Verification of 'ids' and 'attribute_ids' failed inside " . __METHOD__ . ", please debug further!";
+                        $exceptionLogger->log($mVerificationIDs, 'error');
+                        $exceptionUnhandledLogger->log($mVerificationIDs, 'error');
                     }
                 });
 
@@ -394,8 +400,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $findIDs =  array_intersect($attrImportantInfo['ids'], array($curID));
                     $attCodes = array_intersect_key($attrImportantInfo['attribute_codes'], $findIDs);
 
-                    if(count($findIDs) !== 0 || count($attCodes) !== 0){
-                        die("Invalid (unhandled) count of attribute codes found when using array_intersect_key() or array_intersect_key(); a unique code is required!" . __METHOD__);
+                    if(count($findIDs) !== 1 || count($attCodes) !== 1){
+                        $mErrIntersect = "Invalid (unhandled) count of attribute codes found when using array_intersect_key() or array_intersect_key(); a unique code is required!" . __METHOD__;
+                        $exceptionLogger->log($mErrIntersect, 'error');
+                        $exceptionUnhandledLogger->log($mErrIntersect, 'error');
                     }
 
                     // Now there should be only single items in array $attCodes
@@ -404,7 +412,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                                     'PosAttrID' => $posID,
                                     'AttrCode' => $attCodes[0],
                                     'AttrID' => $findIDs[0]);
-                    
+
                     array_push ($attrInfo, $newAttr);
 
                 });
