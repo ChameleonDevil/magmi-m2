@@ -362,6 +362,17 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $attrImportantInfo['attribute_codes'] = array_column($attributes['data'], 'attribute_code');
                 $attrImportantInfo['attribute_ids'] = array_column($attributes['data'], 'attribute_id');
 
+                // Verify array, check indexes
+                array_walk($attrImportantInfo['ids'], function($v, $k) use ($attrImportantInfo){ 
+                    if($attrImportantInfo['attribute_ids'][$k] != $v){
+                        die("Verification of 'ids' and 'attribute_ids' failed inside " . __METHOD__ . ", please debug further!");
+                    }
+                });
+
+                // Drop the one array item since verification passed
+                $attrImportantInfo = array('ids' => $attrImportantInfo['ids'],
+                                            'attribute_codes' => $attrImportantInfo['attribute_codes']);
+
                 $attrInfo = array();
                 // Objective : Find the attribute details (code/type) etc from other stack trace items.
                 // Use $emptyDataItems to assist in that with numberColumns.
@@ -376,8 +387,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $diffString = "CurPos : $curPos % $numberColumns = $diff";
                     // Calculate the position of the actual index we need (for the attribute ID)
                     $posID = $curPos - $diff;
-                    $newAttr = array('nullPos' => $k, 'DiffString' => $diffString, 'posAttrID' => $posID, 'attrID' => '');
-                    array_push ($attrInfo);
+                    $newAttr = array('NullPos' => $k, 
+                                    'DiffString' => $diffString, 
+                                    'PosAttrID' => $posID, 
+                                    'AttrCode' => $attrImportantInfo['attribute_codes'][$posID],
+                                    'AttrID' => $attrImportantInfo['attribute_ids'][$posID]);
+                    array_push ($attrInfo, $newAttr);
 
                 });
 
