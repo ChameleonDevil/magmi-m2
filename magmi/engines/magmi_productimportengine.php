@@ -377,7 +377,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     // Calculate the position of the actual index we need (for the attribute ID)
                     $posID = $curPos - $diff;
                     $newAttr = array('nullPos' => $k, 'DiffString' => $diffString, 'posAttrID' => $posID, 'attrID' => '');
-                    array_push ($attrInfo)
+                    array_push ($attrInfo);
 
                 });
 
