@@ -379,7 +379,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 // Find the positions of the empties inside the array
                 // The index of $emptyDataItems represents the index inside $data
                 // The value is the attribute ID that is empty.
-                array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $attrImportantInfo, $numberColumns){
+                array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $data, $attrImportantInfo, $numberColumns){
                     $curPos = $k;
                     $curVal = $v;
 
@@ -388,11 +388,23 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $diffString = "CurPos : $curPos % $numberColumns = $diff";
                     // Calculate the position of the actual index we need (for the attribute ID)
                     $posID = $curPos - $diff;
-                    $newAttr = array('NullPos' => $k, 
-                                    'DiffString' => $diffString, 
-                                    'PosAttrID' => $posID, 
-                                    'AttrCode' => $attrImportantInfo['attribute_codes'][$posID],
-                                    'AttrID' => $attrImportantInfo['ids'][$posID]);
+                    $curID = $data[$posID];
+
+                    // Find the indexes of the matching attribute IDs
+                    $findIDs =  array_intersect($attrImportantInfo['ids'], array($curID));
+                    $attCodes = array_intersect_key($attrImportantInfo['attribute_codes'], $findIDs);
+
+                    if(count($findIDs) !== 0 || count($attCodes) !== 0){
+                        die("Invalid (unhandled) count of attribute codes found when using array_intersect_key() or array_intersect_key(); a unique code is required!" . __METHOD__);
+                    }
+
+                    // Now there should be only single items in array $attCodes
+                    $newAttr = array('NullPos' => $curPos,
+                                    'DiffString' => $diffString,
+                                    'PosAttrID' => $posID,
+                                    'AttrCode' => $attCodes[0],
+                                    'AttrID' => $findIDs[0]);
+                    
                     array_push ($attrInfo, $newAttr);
 
                 });
