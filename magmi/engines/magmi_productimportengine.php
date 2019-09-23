@@ -379,13 +379,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 $attrImportantInfo = array('ids' => $attrImportantInfo['ids'],
                                             'attribute_codes' => $attrImportantInfo['attribute_codes']);
 
-                $attrInfo = array();
+                $matchingAttributes = array();
                 // Objective : Find the attribute details (code/type) etc from other stack trace items.
                 // Use $emptyDataItems to assist in that with numberColumns.
                 // Find the positions of the empties inside the array
                 // The index of $emptyDataItems represents the index inside $data
                 // The value is the attribute ID that is empty.
-                array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $data, $attrImportantInfo, $numberColumns){
+                array_walk($emptyDataItems, function($v, $k) use (&$matchingAttributes, $data, $attrImportantInfo, $numberColumns){
                     $curPos = $k;
                     $curVal = $v;
 
@@ -407,52 +407,27 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     }
 
                     // Now there should be only single items in array $attCodes
-                    $newAttr = array('NullPos' => $curPos,
-                                    'DiffString' => $diffString,
-                                    'PosAttrID' => $posID,
-                                    'AttrCode' => array_values($attCodes)[0],
-                                    'AttrID' => array_values($findIDs)[0],
-                                    'IndexInData' => array_keys($findIDs)[0]
+                    $newAttr = array('Position Empty Value' => $curPos,
+                                    'Difference String' => $diffString,
+                                    'Position Attribute ID' => $posID,
+                                    'AttributeCode' => array_values($attCodes)[0],
+                                    'AttributeID' => array_values($findIDs)[0],
+                                    'Index in Data variable' => array_keys($findIDs)[0]
                                 );
 
-                    array_push ($attrInfo, $newAttr);
+                    array_push ($matchingAttributes, $newAttr);
 
                 });
 
-                // Get the attribute IDs for the empty items
-                $idsOfEmpties = array_flip(array_intersect_key($attrIds, $emptyDataItems));
+                // $matchingAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
 
-                // Select the id, and code of the attributes
-                $attInfo['id'] = array_column($attributes['data'], 'attribute_id');
-                $attInfo['code'] = array_column($attributes['data'], 'attribute_code');
+                $reportDetails = array();
+                array_walk($matchingAttributes, function($v, $k) use (&$reportDetails, $prodSKU, $errorType){
 
-                // Try to combine information
-                array_walk($attInfo['id'], function($v, $k) use (&$attInfo){
-                    $attInfo['id'][$k] = array('code' => $attInfo['code'][$k], 'id' => $v);
-                });
-
-                // Don't need the extra ['code'] details anymore
-                $attInfo = array_values($attInfo['id']);
-
-                // Get the attribute details for the empty items -
-                // 1. Match keys on both arrays and return attribute details
-                $filteredAttributes = array_filter($attInfo, function($v) use ($idsOfEmpties){
-                    return array_key_exists($v['id'], $idsOfEmpties);
-                }, 0);
-
-                // $filteredAttributes = array_intersect_key($attributes['data'], $emptyDataItems);
-
-                $attCodes = array();
-                array_walk($filteredAttributes, function($v, $k) use (&$attCodes, $prodSKU, $errorType){
-                    $code = $v['code'];
-                    $id = $v['id'];
-
-                    $storeValue = array('FieldType' => $errorType,
-                        'SKU' => $prodSKU,
-                        'ID' => $id,
-                        'AttributeCode' => $code
-                    );
-                    array_push($attCodes, $storeValue);
+                    $arrayItem = $v;
+                    $arrayItem['SKU'] = $prodSKU;
+                    $arrayItem['FieldType'] = $errorType;
+                    $code = $arrayItem['AttributeCode'];
 
                     if(array_key_exists($code, $this->_attributeErrorCache)){
                         // Add the new attribute details to existing array
@@ -464,7 +439,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     }
                 });
 
-                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($attCodes, true) . "</div></empties_moreinfo>");
+                $exceptionLogger->log("<div><empties_moreinfo>" . print_r($reportDetails, true) . "</div></empties_moreinfo>");
             }
             else{
                 $exceptionLogger->log("<div><empties_moreinfo>Unknown Attribute Type - not implemented, can not determine which attributes are empty!</div></empties_moreinfo>", 'info');
