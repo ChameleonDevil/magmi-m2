@@ -382,7 +382,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $attrImportantInfo, $numberColumns){
                     $curPos = $k;
                     $curVal = $v;
-                    
+
                     // Get modulus (difference)
                     $diff = $curPos % $numberColumns;
                     $diffString = "CurPos : $curPos % $numberColumns = $diff";
@@ -392,7 +392,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                                     'DiffString' => $diffString, 
                                     'PosAttrID' => $posID, 
                                     'AttrCode' => $attrImportantInfo['attribute_codes'][$posID],
-                                    'AttrID' => $attrImportantInfo['attribute_ids'][$posID]);
+                                    'AttrID' => $attrImportantInfo['ids'][$posID]);
                     array_push ($attrInfo, $newAttr);
 
                 });
