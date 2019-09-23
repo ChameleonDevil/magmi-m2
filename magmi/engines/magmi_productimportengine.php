@@ -428,7 +428,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $arrayItem['SKU'] = $prodSKU;
                     $arrayItem['FieldType'] = $errorType;
                     $code = $arrayItem['AttributeCode'];
-
+                    $storeValue = $arrayItem;
+                    array_push($reportDetails, $storeValue);
                     if(array_key_exists($code, $this->_attributeErrorCache)){
                         // Add the new attribute details to existing array
                         array_push($this->_attributeErrorCache[$code], $storeValue);
