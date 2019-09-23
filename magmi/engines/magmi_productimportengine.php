@@ -339,13 +339,38 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         // Check the empty items
         if(count($emptyDataItems) > 0){
+            $groupQuestionMarks = 'questionmarks';
             $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
-            $exceptionLogger->log("<div><empties>" . print_r($emptyDataItems, true) . "</empties></div>", 'info');
+            $exceptionLogger->log("<div><empties_indexes>These entries are only the indexes - not the actual attribute index." . print_r($emptyDataItems, true) . "</empties_indexes></div>", 'info');
 
             // Check the associated attributes for this known 'type'
             if(!empty($attributes)){
+                // Regex to extract VALUES (?, ?) from SQL string up to 6 characters
+                $regexSQLQuestionMarks = '/(VALUES) \((?P<' & $groupQuestionMarks & '>(\?\,){1,6}(\?))\)/';
+                $matched = preg_match($regexSQLQuestionMarks, $sql, $sqlMatches);
 
+                if(!$matched){
+                    die("Regular Expression match could not find QuestionMarks in SQL string!" . __METHOD__);
+                }
+                // Find the number of question marks per row (aka all columns in row)
+                $numberColumns = count(explode(',', trim($sqlMatches[$groupQuestionMarks])));
+
+                // Fetch the Attribute IDs for all attributes
                 $attrIds = explode(",", $attributes['ids']);
+
+                // Objective : Find the attribute details (code/type) etc from other stack trace items.
+                // Use $emptyDataItems to assist in that with numberColumns.
+                // Find the positions of the empties inside the array
+                // The index of $emptyDataItems represents the index inside $data
+                // The value is the attribute ID that is empty.
+                array_walk($emptyDataItems, function($v, $k) use (&$numberColumns){
+                    $curPos = $k;
+                    $curVal = $v;
+                    // Get modulus (difference)
+                    $diff = $curPos % $numberColumns;
+                    // Calculate the position of the actual index we need
+                    array_push($emptiesPositions, $v);
+                });
 
                 // Get the attribute IDs for the empty items
                 $idsOfEmpties = array_flip(array_intersect_key($attrIds, $emptyDataItems));
