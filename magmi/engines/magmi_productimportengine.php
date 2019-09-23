@@ -342,21 +342,21 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
         // Check the empty items
         if(count($emptyDataItems) > 0){
-            $groupQuestionMarks = "questionmarks";
+            $gQuestionMarks = "questionmarks";
             $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
             $exceptionLogger->log("<div><empties_indexes>These entries are only the indexes - not the actual attribute index." . print_r($emptyDataItems, true) . "</empties_indexes></div>", 'info');
 
             // Check the associated attributes for this known 'type'
             if(!empty($attributes)){
                 // Regex to extract VALUES (?, ?) from SQL string up to 6 characters
-                $regexSQLQuestionMarks = '/(VALUES) \((?P<' & $groupQuestionMarks & '>(\?\,){1,6}(\?))\)/';
+                $regexSQLQuestionMarks = '/(VALUES) \((?P<' & $gQuestionMarks & '>(\?\,){1,6}(\?))\)/';
                 $matched = preg_match($regexSQLQuestionMarks, $sql, $sqlMatches);
 
                 if(!$matched){
                     die("Regular Expression match could not find QuestionMarks in SQL string!" . __METHOD__);
                 }
                 // Find the number of question marks per row (aka all columns in row)
-                $numberColumns = count(explode(',', trim($sqlMatches[$groupQuestionMarks])));
+                $numberColumns = count(explode(',', trim($sqlMatches[$gQuestionMarks])));
 
                 // Fetch the Attribute IDs for all attributes
                 $attrIds = explode(",", $attributes['ids']);
