@@ -382,6 +382,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                 array_walk($emptyDataItems, function($v, $k) use (&$attrInfo, $attrImportantInfo, $numberColumns){
                     $curPos = $k;
                     $curVal = $v;
+                    
                     // Get modulus (difference)
                     $diff = $curPos % $numberColumns;
                     $diffString = "CurPos : $curPos % $numberColumns = $diff";
