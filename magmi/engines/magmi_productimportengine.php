@@ -343,7 +343,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
         // Check the empty items
         if(count($emptyDataItems) > 0){
 
-            $groupQM = 'questionmarks';
+            $groupQM = "questionMarks";
             $exceptionLogger->log("<div>Empties were detected in Trace:</div>", 'info');
             $exceptionLogger->log("<div><empties_indexes>These entries are only the indexes - not the actual attribute index." . print_r($emptyDataItems, true) . "</empties_indexes></div>", 'info');
 
