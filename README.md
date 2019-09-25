@@ -1,5 +1,12 @@
-Magmi 2 for Magento 2 > 2.1.x
+Magmi 2 for Magento 2 > 2.3.x
 ===========================
+
+The fork is from the Macopedia adaptation for Magento 2 https://github.com/macopedia/magmi-m2  (using macopedia/magmi-m2/magento2 branch).
+
+
+
+Original text from Macopedia
+============================
 
 This is fork from official magmi Github reposiotry (https://github.com/dweeves/magmi-git). 
 This fork use version 0.7.23 of magmi with changes for Magento 2 imported from repositories:
