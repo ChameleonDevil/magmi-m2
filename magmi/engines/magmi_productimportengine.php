@@ -115,6 +115,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
     private $_extensionDebugLogFiles = '.exceptionlog'; // The default extension debug log extensions.
     private $_errorCacheSummaryLogFile = '_Summary-Attribute-Errors_'; // The summary contents of all attributes that had errors.
     private $_attributeErrorCache = array(); // Attribute Error Cache -> For instance AttributeCode, Reason, Column
+    private $_removeLogNameForeignCharacters = array('/', '\\', '+', ' ', '(', ')', '!', '\"', '#', '$', '%', '&', '\'', '*', ',', '.'); // Remove foreign characters from log names
+
     /**
      * Constructor
      * add default attribute processor
@@ -217,8 +219,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
      */
     private function _createProductItemLogger($item = array(), $extension = ".exceptionlog"){
         $fileName = $item['sku'];
-
-        $logName = str_replace(" ", "-", $fileName) . $extension;
+        // Remove these characters from the filenames
+        $removeChars = $this->_removeLogNameForeignCharacters;
+        // Replace each character
+        array_walk($removeChars, function($v, $k) use (&$fileName){
+            $fileName = str_replace($fileName, $v, "-");
+        });
+        $logName = $fileName . $extension;
         $logName = $this->_getLoggerStatePath($logName);
         $this->_createDebugLogger($logName,  $dgLogItemException);
         return $dgLogItemException;
