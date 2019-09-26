@@ -2,7 +2,7 @@
 
 class Magmi_Mixin
 {
-    protected $_callers;
+    protected $_callers = array();
 
     public function bind($caller)
     {
